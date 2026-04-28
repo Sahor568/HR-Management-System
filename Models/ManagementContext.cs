@@ -18,6 +18,7 @@ namespace Management.Models
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<SystemLog> SystemLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

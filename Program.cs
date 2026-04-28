@@ -42,6 +42,9 @@ try
     builder.Services.AddDbContext<ManagementContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+    // Add LogService
+    builder.Services.AddScoped<Management.Services.ILogService, Management.Services.LogService>();
+
     // Add JWT Authentication
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong";

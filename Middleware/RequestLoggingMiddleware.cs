@@ -1,6 +1,8 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text;
+using Management.Services;
 
 
 // The Serilog logging implementation covers the following logs:
@@ -96,16 +98,38 @@ namespace Management.Middleware
                 _logger.Log(logLevel, "HTTP Response: {@ResponseLog}", responseLog);
 
                 // Log response body for errors
+                string responseBodyText = string.Empty;
                 if (response.StatusCode >= 400)
                 {
                     responseBody.Seek(0, SeekOrigin.Begin);
-                    var responseBodyText = await new StreamReader(responseBody).ReadToEndAsync();
+                    responseBodyText = await new StreamReader(responseBody).ReadToEndAsync();
                     responseBody.Seek(0, SeekOrigin.Begin);
                     
                     if (!string.IsNullOrEmpty(responseBodyText) && responseBodyText.Length < 1000)
                     {
                         _logger.LogDebug("Error Response Body: {ResponseBody}", responseBodyText);
                     }
+                }
+
+                // Log to database using LogService
+                try
+                {
+                    var logService = context.RequestServices.GetRequiredService<ILogService>();
+                    await logService.LogRequestAsync(
+                        request.Method,
+                        request.Path,
+                        request.QueryString.Value,
+                        context.Connection.RemoteIpAddress?.ToString(),
+                        context.User.Identity?.Name ?? "Anonymous",
+                        response.StatusCode,
+                        stopwatch.ElapsedMilliseconds,
+                        requestBody,
+                        responseBodyText
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to log request to database");
                 }
 
                 await responseBody.CopyToAsync(originalBodyStream);

@@ -17,7 +17,7 @@ namespace Management.Controllers
             return View();
         }
 
-        public IActionResult Hello()
+        public IActionResult Settings()
         {
             return View();
         }
