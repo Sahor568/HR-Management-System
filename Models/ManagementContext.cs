@@ -17,9 +17,32 @@ namespace Management.Models
         public DbSet<Leave> Leaves { get; set; }
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure decimal precision for Employee.Salary
+            modelBuilder.Entity<Employee>()
+                .Property(e => e.Salary)
+                .HasPrecision(18, 2);
+
+            // Configure decimal precision for Payroll properties
+            modelBuilder.Entity<Payroll>()
+                .Property(p => p.BasicSalary)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Payroll>()
+                .Property(p => p.Bonus)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Payroll>()
+                .Property(p => p.Deductions)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Payroll>()
+                .Property(p => p.NetSalary)
+                .HasPrecision(18, 2);
+
             // Configure relationships if needed
             modelBuilder.Entity<Employee>()
                 .HasOne(e => e.Department)
@@ -52,6 +75,13 @@ namespace Management.Models
                 .WithMany(e => e.Subordinates)
                 .HasForeignKey(e => e.SupervisorId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete to avoid cycles
+
+            // Configure Notification relationship
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Recipient)
+                .WithMany()
+                .HasForeignKey(n => n.RecipientId)
+                .OnDelete(DeleteBehavior.SetNull); // If user is deleted, set RecipientId to null
         }
     }
 }
