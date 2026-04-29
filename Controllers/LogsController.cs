@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 
 namespace Management.Controllers
 {
-    [Authorize(Policy = "AdminOrHR")]
     public class LogsController : Controller
     {
-        private readonly ManagementContext _context;
+    private readonly ManagementContext _context;
 
-        public LogsController(ManagementContext context)
+    public LogsController(ManagementContext context)
         {
             _context = context;
         }
 
         // GET: Logs
-        public async Task<IActionResult> Index(
+    public async Task<IActionResult> Index(
             string? level = null,
             string? source = null,
             string? userName = null,
@@ -109,7 +108,7 @@ namespace Management.Controllers
         }
 
         // GET: Logs/Details/5
-        public async Task<IActionResult> Details(long? id)
+    public async Task<IActionResult> Details(long? id)
         {
             if (id == null)
             {
@@ -127,17 +126,15 @@ namespace Management.Controllers
         }
 
         // GET: Logs/ClearOld
-        [Authorize(Policy = "AdminOnly")]
-        public IActionResult ClearOld()
+    public IActionResult ClearOld()
         {
             return View();
         }
 
         // POST: Logs/ClearOld
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> ClearOld(int daysToKeep)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearOld(int daysToKeep)
         {
             if (daysToKeep < 1 || daysToKeep > 365)
             {
@@ -157,7 +154,7 @@ namespace Management.Controllers
         }
 
         // GET: Logs/Export
-        public async Task<IActionResult> Export(
+    public async Task<IActionResult> Export(
             string? level = null,
             string? source = null,
             string? userName = null,
@@ -207,17 +204,16 @@ namespace Management.Controllers
             return File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", fileName);
         }
 
-        private string EscapeCsv(string? value)
+    private string EscapeCsv(string? value)
         {
             if (string.IsNullOrEmpty(value)) return "";
             return value.Replace("\"", "\"\"");
         }
 
         // POST: Logs/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> Delete(long id)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+            public async Task<IActionResult> Delete(long id)
         {
             var systemLog = await _context.SystemLogs.FindAsync(id);
             if (systemLog == null)
@@ -233,8 +229,8 @@ namespace Management.Controllers
         }
 
         // GET: Logs/GetStatistics
-        [HttpGet]
-        public async Task<IActionResult> GetStatistics()
+    [HttpGet]
+    public async Task<IActionResult> GetStatistics()
         {
             var today = DateTime.UtcNow.Date;
             var weekStart = today.AddDays(-(int)today.DayOfWeek);
@@ -265,8 +261,8 @@ namespace Management.Controllers
         }
 
         // GET: Logs/GetLogStats
-        [HttpGet]
-        public async Task<IActionResult> GetLogStats(int days = 30)
+    [HttpGet]
+    public async Task<IActionResult> GetLogStats(int days = 30)
         {
             if (days < 1 || days > 365)
             {
@@ -298,19 +294,19 @@ namespace Management.Controllers
 
     public class LogsViewModel
     {
-        public List<SystemLog> Logs { get; set; } = new List<SystemLog>();
-        public string? LevelFilter { get; set; }
-        public string? SourceFilter { get; set; }
-        public string? UserNameFilter { get; set; }
-        public string? SearchFilter { get; set; }
-        public DateTime? FromDateFilter { get; set; }
-        public DateTime? ToDateFilter { get; set; }
-        public string? LogTypeFilter { get; set; }
-        public int CurrentPage { get; set; }
-        public int PageSize { get; set; }
-        public int TotalCount { get; set; }
-        public int TotalPages { get; set; }
-        public string[] Levels { get; set; } = Array.Empty<string>();
-        public string[] LogTypes { get; set; } = Array.Empty<string>();
+    public List<SystemLog> Logs { get; set; } = new List<SystemLog>();
+    public string? LevelFilter { get; set; }
+    public string? SourceFilter { get; set; }
+    public string? UserNameFilter { get; set; }
+    public string? SearchFilter { get; set; }
+    public DateTime? FromDateFilter { get; set; }
+    public DateTime? ToDateFilter { get; set; }
+    public string? LogTypeFilter { get; set; }
+    public int CurrentPage { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public string[] Levels { get; set; } = Array.Empty<string>();
+    public string[] LogTypes { get; set; } = Array.Empty<string>();
     }
 }

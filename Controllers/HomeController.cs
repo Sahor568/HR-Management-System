@@ -17,7 +17,39 @@ namespace Management.Controllers
             return View();
         }
 
+        public IActionResult Hello()
+        {
+            return View();
+        }
+
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
         public IActionResult Settings()
+        {
+            return View();
+        }
+
+        public IActionResult Logout()
+        {
+            // This would typically handle logout logic
+            // For now, just redirect to login
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Profile()
         {
             return View();
         }

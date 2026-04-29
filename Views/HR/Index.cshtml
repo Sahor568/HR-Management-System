@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "HR Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1 class="page-title">HR Management</h1>
+                <p class="page-subtitle">Manage human resources, employee relations, and HR policies</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Employee Management</h5>
+                    <p class="card-text">View and manage all employees in the organization.</p>
+                    <a href="/Employees/Index" class="btn btn-primary">Go to Employees</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Leave Requests</h5>
+                    <p class="card-text">Approve or reject employee leave requests.</p>
+                    <a href="/Leaves/Index" class="btn btn-primary">Manage Leaves</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Attendance</h5>
+                    <p class="card-text">Monitor employee attendance and time tracking.</p>
+                    <a href="/Attendances/Index" class="btn btn-primary">View Attendance</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payroll</h5>
+                    <p class="card-text">Process payroll and manage salary information.</p>
+                    <a href="/Payrolls/Index" class="btn btn-primary">Go to Payroll</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">HR Dashboard</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Quick Actions</h6>
+                            <div class="list-group">
+                                <a href="#" class="list-group-item list-group-item-action">Add New Employee</a>
+                                <a href="#" class="list-group-item list-group-item-action">Process Monthly Payroll</a>
+                                <a href="#" class="list-group-item list-group-item-action">Generate HR Reports</a>
+                                <a href="#" class="list-group-item list-group-item-action">Update HR Policies</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Statistics</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="total-employees">0</div>
+                                        <div class="stat-label">Total Employees</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="pending-leaves">0</div>
+                                        <div class="stat-label">Pending Leaves</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load HR statistics
+            loadHRStatistics();
+        });
+
+        async function loadHRStatistics() {
+            try {
+                // Load employee count
+                const employeesResponse = await fetch('/api/Employees');
+                if (employeesResponse.ok) {
+                    const employees = await employeesResponse.json();
+                    $('#total-employees').text(employees.length || 0);
+                }
+
+                // Load pending leaves count
+                const leavesResponse = await fetch('/api/Leaves/pending');
+                if (leavesResponse.ok) {
+                    const pendingLeaves = await leavesResponse.json();
+                    $('#pending-leaves').text(pendingLeaves.length || 0);
+                }
+            } catch (error) {
+                console.error('Error loading HR statistics:', error);
+            }
+        }
+    </script>
+}

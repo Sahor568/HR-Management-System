@@ -1,0 +1,389 @@
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-user me-2"></i>My Profile</h1>
+        <p class="page-subtitle">View and manage your personal information</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="avatar-profile mx-auto">
+                            <div class="avatar-initials">JD</div>
+                        </div>
+                        <h4 class="mt-3 mb-0">John Doe</h4>
+                        <p class="text-muted">Administrator</p>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-camera me-1"></i>Change Photo
+                        </button>
+                    </div>
+                    
+                    <div class="list-group list-group-flush text-start">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-envelope me-2 text-primary"></i>Email</span>
+                            <span class="text-muted">john.doe@example.com</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-phone me-2 text-primary"></i>Phone</span>
+                            <span class="text-muted">+1 234-567-8900</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar me-2 text-primary"></i>Joined</span>
+                            <span class="text-muted">Jan 15, 2026</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-shield-alt me-2 text-primary"></i>Status</span>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Leave Balance</span>
+                        <strong>18 days</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Attendance Rate</span>
+                        <strong>96%</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Tasks Completed</span>
+                        <strong>42</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Performance Score</span>
+                        <strong class="text-success">4.8/5.0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#personal">Personal Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#employment">Employment</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#activity">Activity</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Personal Info Tab -->
+                        <div class="tab-pane fade show active" id="personal">
+                            <form id="personalInfoForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" value="John">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" value="Doe">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control" value="1990-05-15">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <select class="form-select">
+                                            <option selected>Male</option>
+                                            <option>Female</option>
+                                            <option>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" rows="3">123 Main Street, New York, NY 10001</textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Emergency Contact</label>
+                                        <input type="text" class="form-control" value="Jane Doe">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Emergency Phone</label>
+                                        <input type="tel" class="form-control" value="+1 234-567-8901">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Update Personal Info
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Employment Tab -->
+                        <div class="tab-pane fade" id="employment">
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="30%">Employee ID</th>
+                                            <td>EMP-2026-001</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Department</th>
+                                            <td>Information Technology</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Position</th>
+                                            <td>System Administrator</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Supervisor</th>
+                                            <td>Sarah Johnson</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Employment Type</th>
+                                            <td>Full-time</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Hire Date</th>
+                                            <td>January 15, 2026</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Salary</th>
+                                            <td>$85,000/year</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Work Schedule</th>
+                                            <td>Monday-Friday, 9:00 AM - 5:00 PM</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Employment details are managed by HR department. Contact HR for any changes.
+                            </div>
+                        </div>
+                        
+                        <!-- Documents Tab -->
+                        <div class="tab-pane fade" id="documents">
+                            <div class="mb-4">
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-upload me-2"></i>Upload Document
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Document Name</th>
+                                            <th>Type</th>
+                                            <th>Upload Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><i class="fas fa-file-pdf text-danger me-2"></i>Employment Contract</td>
+                                            <td>Contract</td>
+                                            <td>Jan 15, 2026</td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="fas fa-file-image text-info me-2"></i>ID Proof</td>
+                                            <td>Identification</td>
+                                            <td>Jan 16, 2026</td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="fas fa-file-word text-primary me-2"></i>Resume</td>
+                                            <td>Resume</td>
+                                            <td>Jan 15, 2026</td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="fas fa-file-pdf text-danger me-2"></i>Tax Form W-4</td>
+                                            <td>Tax</td>
+                                            <td>Jan 20, 2026</td>
+                                            <td><span class="badge bg-warning">Pending</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Activity Tab -->
+                        <div class="tab-pane fade" id="activity">
+                            <h6 class="mb-3">Recent Activity</h6>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-primary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Leave Request Submitted</h6>
+                                        <p class="text-muted mb-0">Submitted annual leave request for 5 days</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Password Changed</h6>
+                                        <p class="text-muted mb-0">Successfully updated account password</p>
+                                        <small class="text-muted">1 day ago</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Profile Updated</h6>
+                                        <p class="text-muted mb-0">Updated personal contact information</p>
+                                        <small class="text-muted">3 days ago</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-warning"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Attendance Marked</h6>
+                                        <p class="text-muted mb-0">Marked attendance for the day</p>
+                                        <small class="text-muted">1 week ago</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-secondary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Document Uploaded</h6>
+                                        <p class="text-muted mb-0">Uploaded updated resume</p>
+                                        <small class="text-muted">2 weeks ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-profile {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .avatar-initials {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    
+    .timeline-content {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .timeline-item:last-child .timeline-content {
+        border-bottom: none;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Tab functionality
+            $('.nav-tabs a').on('click', function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+            
+            // Personal info form submission
+            $('#personalInfoForm').on('submit', function(e) {
+                e.preventDefault();
+                showNotification('Success', 'Personal information updated successfully!', 'success');
+            });
+            
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+        
+        function showNotification(title, message, type) {
+            // Create notification element
+            const notification = $(`
+                <div class="alert alert-${type} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <strong>${title}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            $('body').append(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.alert('close');
+            }, 5000);
+        }
+    </script>
+}

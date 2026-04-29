@@ -31,4 +31,12 @@
     <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
   </ItemGroup>
 
+  <!-- Exclude the Human Resource folder which contains a separate project -->
+  <ItemGroup>
+    <Compile Remove="Human Resource\**" />
+    <Content Remove="Human Resource\**" />
+    <EmbeddedResource Remove="Human Resource\**" />
+    <None Remove="Human Resource\**" />
+  </ItemGroup>
+
 </Project>

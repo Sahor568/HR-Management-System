@@ -132,6 +132,8 @@ namespace Management.Middleware
                     _logger.LogError(ex, "Failed to log request to database");
                 }
 
+                // Always seek back to beginning before copying response
+                responseBody.Seek(0, SeekOrigin.Begin);
                 await responseBody.CopyToAsync(originalBodyStream);
             }
         }

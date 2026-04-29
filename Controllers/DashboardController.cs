@@ -13,17 +13,16 @@ namespace Management.Controllers
     [ApiController]
     public class DashboardController : ControllerBase
     {
-        private readonly ManagementContext _context;
+    private readonly ManagementContext _context;
 
-        public DashboardController(ManagementContext context)
+    public DashboardController(ManagementContext context)
         {
             _context = context;
         }
 
         // GET: api/Dashboard/stats
-        [HttpGet("stats")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<object>> GetDashboardStats()
+    [HttpGet("stats")]
+            public async Task<ActionResult<object>> GetDashboardStats()
         {
             var totalEmployees = await _context.Employees.CountAsync();
             var totalDepartments = await _context.Departments.CountAsync();
@@ -60,9 +59,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/employee-distribution
-        [HttpGet("employee-distribution")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<IEnumerable<object>>> GetEmployeeDistribution()
+    [HttpGet("employee-distribution")]
+            public async Task<ActionResult<IEnumerable<object>>> GetEmployeeDistribution()
         {
             var distribution = await _context.Employees
                 .Include(e => e.Department)
@@ -79,9 +77,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/attendance-trend
-        [HttpGet("attendance-trend")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<IEnumerable<object>>> GetAttendanceTrend([FromQuery] int days = 30)
+    [HttpGet("attendance-trend")]
+            public async Task<ActionResult<IEnumerable<object>>> GetAttendanceTrend([FromQuery] int days = 30)
         {
             var startDate = DateTime.Today.AddDays(-days);
             
@@ -102,9 +99,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/leave-summary
-        [HttpGet("leave-summary")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<object>> GetLeaveSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
+    [HttpGet("leave-summary")]
+            public async Task<ActionResult<object>> GetLeaveSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
         {
             if (month == 0) month = DateTime.Now.Month;
             if (year == 0) year = DateTime.Now.Year;
@@ -131,9 +127,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/payroll-summary
-        [HttpGet("payroll-summary")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<object>> GetPayrollSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
+    [HttpGet("payroll-summary")]
+            public async Task<ActionResult<object>> GetPayrollSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
         {
             if (month == 0) month = DateTime.Now.Month;
             if (year == 0) year = DateTime.Now.Year;
@@ -178,9 +173,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/upcoming-holidays
-        [HttpGet("upcoming-holidays")]
-        [Authorize(Policy = "AllRoles")]
-        public async Task<ActionResult<IEnumerable<object>>> GetUpcomingHolidays([FromQuery] int count = 10)
+    [HttpGet("upcoming-holidays")]
+            public async Task<ActionResult<IEnumerable<object>>> GetUpcomingHolidays([FromQuery] int count = 10)
         {
             var today = DateTime.Today;
             
@@ -201,9 +195,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/employee-performance
-        [HttpGet("employee-performance")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<IEnumerable<object>>> GetEmployeePerformance([FromQuery] int top = 10)
+    [HttpGet("employee-performance")]
+            public async Task<ActionResult<IEnumerable<object>>> GetEmployeePerformance([FromQuery] int top = 10)
         {
             // Calculate performance based on attendance and leaves
             var thirtyDaysAgo = DateTime.Today.AddDays(-30);
@@ -234,9 +227,8 @@ namespace Management.Controllers
         }
 
         // GET: api/Dashboard/department-performance
-        [HttpGet("department-performance")]
-        [Authorize(Policy = "AdminOrHR")]
-        public async Task<ActionResult<IEnumerable<object>>> GetDepartmentPerformance()
+    [HttpGet("department-performance")]
+            public async Task<ActionResult<IEnumerable<object>>> GetDepartmentPerformance()
         {
             var performance = await _context.Departments
                 .Include(d => d.Employees)

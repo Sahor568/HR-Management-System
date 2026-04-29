@@ -1,0 +1,132 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login to HR System</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                            <a href="/Home/Register" class="btn btn-outline-secondary">
+                                <i class="fas fa-user-plus me-2"></i>Create New Account
+                            </a>
+                        </div>
+                    </form>
+                    <div class="mt-4 text-center">
+                        <p class="text-muted mb-0">Demo Credentials:</p>
+                        <p class="mb-0"><small>Admin: admin@hr.com / admin123</small></p>
+                        <p class="mb-0"><small>HR: hr@hr.com / hr123</small></p>
+                        <p class="mb-0"><small>Employee: employee@hr.com / employee123</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#loginForm').on('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = $('#email').val();
+                const password = $('#password').val();
+                
+                if (!email || !password) {
+                    showNotification('Error', 'Please fill in all fields', 'danger');
+                    return;
+                }
+                
+                const loginBtn = $('#loginBtn');
+                const originalText = loginBtn.html();
+                loginBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Logging in...');
+                
+                try {
+                    const response = await fetch('/api/Login/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        showNotification('Success', 'Login successful! Redirecting...', 'success');
+                        
+                        // Store token in localStorage
+                        if (data.token) {
+                            localStorage.setItem('auth_token', data.token);
+                            localStorage.setItem('user_email', email);
+                            localStorage.setItem('user_role', data.role || 'Employee');
+                        }
+                        
+                        // Redirect to dashboard after 1 second
+                        setTimeout(() => {
+                            window.location.href = '/Home/Dashboard';
+                        }, 1000);
+                    } else {
+                        const error = await response.text();
+                        showNotification('Login Failed', error || 'Invalid email or password', 'danger');
+                    }
+                } catch (error) {
+                    showNotification('Error', 'Network error. Please try again.', 'danger');
+                } finally {
+                    loginBtn.prop('disabled', false).html(originalText);
+                }
+            });
+            
+            // Auto-fill demo credentials for testing
+            $('#email').on('focus', function() {
+                if (!$(this).val()) {
+                    $(this).val('admin@hr.com');
+                    $('#password').val('admin123');
+                }
+            });
+        });
+        
+        function showNotification(title, message, type) {
+            // Create notification element
+            const notification = $(`
+                <div class="alert alert-${type} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <strong>${title}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            $('body').append(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.alert('close');
+            }, 5000);
+        }
+    </script>
+}

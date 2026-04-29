@@ -1,0 +1,411 @@
+@model IEnumerable<Management.Models.User>
+
+@{
+    ViewData["Title"] = "Users Management";
+}
+
+<style>
+    .user-filter {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .user-filter input,
+    .user-filter select {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .user-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .user-row:last-child {
+        border-bottom: none;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .user-details h6 {
+        margin: 0;
+        color: var(--text-dark);
+    }
+
+    .user-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .role-admin {
+        background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%);
+        color: #7f1d1d;
+    }
+
+    .role-hr {
+        background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%);
+        color: #065f46;
+    }
+
+    .role-employee {
+        background: linear-gradient(135deg, #2563eb15 0%, #0ea5e915 100%);
+        color: #1e40af;
+    }
+
+    .user-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .user-actions button,
+    .user-actions a {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .status-badge {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .status-active {
+        background-color: var(--success-color);
+    }
+
+    .status-inactive {
+        background-color: var(--danger-color);
+    }
+
+    .user-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .user-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .user-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color);
+    }
+
+    .user-card-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+
+    .user-card h5 {
+        margin: 0.5rem 0;
+        color: var(--text-dark);
+    }
+
+    .user-card p {
+        margin: 0;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .view-toggle button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .view-toggle button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Users Management</h1>
+            <p class="page-subtitle">Manage system users and their roles</p>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add User
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filters -->
+<div class="user-filter">
+    <input type="text" class="form-control" placeholder="Search by name or email...">
+    <select class="form-control" style="max-width: 150px;">
+        <option selected>All Roles</option>
+        <option>Admin</option>
+        <option>HR</option>
+        <option>Employee</option>
+    </select>
+    <button class="btn btn-outline-primary">
+        <i class="fas fa-filter"></i> More Filters
+    </button>
+</div>
+
+<!-- View Toggle -->
+<div class="view-toggle">
+    <button class="active" data-view="table">
+        <i class="fas fa-table"></i> Table View
+    </button>
+    <button data-view="card">
+        <i class="fas fa-th"></i> Card View
+    </button>
+</div>
+
+<!-- Table View -->
+<div id="table-view" class="card">
+    <div class="card-body" style="padding: 1.5rem;">
+        <div class="user-row" style="border-bottom: 2px solid var(--border-color); font-weight: 600; padding: 1rem 0; margin-bottom: 1rem;">
+            <div style="flex: 1;">Email Address</div>
+            <div style="width: 120px;">Role</div>
+            <div style="width: 100px;">Status</div>
+            <div style="width: 100px;">Actions</div>
+        </div>
+
+        <div class="user-row">
+            <div class="user-info">
+                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">AD</div>
+                <div class="user-details">
+                    <h6>Admin User</h6>
+                    <p>admin@company.com</p>
+                </div>
+            </div>
+            <div style="width: 120px;">
+                <span class="role-badge role-admin">Admin</span>
+            </div>
+            <div style="width: 100px;">
+                <span class="status-badge status-active"></span> Active
+            </div>
+            <div class="user-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-row">
+            <div class="user-info">
+                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
+                <div class="user-details">
+                    <h6>Sarah Miller</h6>
+                    <p>sarah@company.com</p>
+                </div>
+            </div>
+            <div style="width: 120px;">
+                <span class="role-badge role-hr">HR</span>
+            </div>
+            <div style="width: 100px;">
+                <span class="status-badge status-active"></span> Active
+            </div>
+            <div class="user-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-row">
+            <div class="user-info">
+                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
+                <div class="user-details">
+                    <h6>John Doe</h6>
+                    <p>john@company.com</p>
+                </div>
+            </div>
+            <div style="width: 120px;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="width: 100px;">
+                <span class="status-badge status-active"></span> Active
+            </div>
+            <div class="user-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-row">
+            <div class="user-info">
+                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
+                <div class="user-details">
+                    <h6>Mike Brown</h6>
+                    <p>mike@company.com</p>
+                </div>
+            </div>
+            <div style="width: 120px;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="width: 100px;">
+                <span class="status-badge status-active"></span> Active
+            </div>
+            <div class="user-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-row">
+            <div class="user-info">
+                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
+                <div class="user-details">
+                    <h6>Emma Johnson</h6>
+                    <p>emma@company.com</p>
+                </div>
+            </div>
+            <div style="width: 120px;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="width: 100px;">
+                <span class="status-badge status-inactive"></span> Inactive
+            </div>
+            <div class="user-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                <button class="btn btn-sm btn-outline-success">Activate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card View -->
+<div id="card-view" style="display: none;">
+    <div class="user-card-grid">
+        <div class="user-card">
+            <div class="user-card-avatar" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">AD</div>
+            <h5>Admin User</h5>
+            <p>admin@company.com</p>
+            <div style="margin: 1rem 0;">
+                <span class="role-badge role-admin">Admin</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <div class="user-card-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
+            <h5>Sarah Miller</h5>
+            <p>sarah@company.com</p>
+            <div style="margin: 1rem 0;">
+                <span class="role-badge role-hr">HR</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <div class="user-card-avatar" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
+            <h5>John Doe</h5>
+            <p>john@company.com</p>
+            <div style="margin: 1rem 0;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <div class="user-card-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
+            <h5>Mike Brown</h5>
+            <p>mike@company.com</p>
+            <div style="margin: 1rem 0;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
+            </div>
+        </div>
+
+        <div class="user-card">
+            <div class="user-card-avatar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
+            <h5>Emma Johnson</h5>
+            <p>emma@company.com</p>
+            <div style="margin: 1rem 0;">
+                <span class="role-badge role-employee">Employee</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-success w-100">Activate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
+                document.getElementById('card-view').style.display = view === 'card' ? 'block' : 'none';
+            });
+        });
+    </script>
+}

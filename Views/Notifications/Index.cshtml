@@ -1,0 +1,388 @@
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header">
+                <h1 class="page-title">Notifications</h1>
+                <p class="page-subtitle">Manage and view system notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">All Notifications</h5>
+                    <div class="card-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">Mark All as Read</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearAllNotifications()">Clear All</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="notifications-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Message</th>
+                                    <th>Recipient</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Notifications will be loaded via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center" id="notifications-loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="text-center" id="no-notifications" style="display: none;">
+                        <p class="text-muted">No notifications found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Notification Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <div class="stat-value" id="total-notifications">0</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card">
+                                <div class="stat-value" id="unread-notifications">0</div>
+                                <div class="stat-label">Unread</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Notification Types</h6>
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                System
+                                <span class="badge bg-primary rounded-pill" id="system-count">0</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                User
+                                <span class="badge bg-success rounded-pill" id="user-count">0</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Alert
+                                <span class="badge bg-warning rounded-pill" id="alert-count">0</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                Reminder
+                                <span class="badge bg-info rounded-pill" id="reminder-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title">Send Notification</h5>
+                </div>
+                <div class="card-body">
+                    <form id="send-notification-form">
+                        <div class="mb-3">
+                            <label for="recipient" class="form-label">Recipient</label>
+                            <select class="form-select" id="recipient" required>
+                                <option value="">Select recipient...</option>
+                                <!-- Will be populated via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" required>
+                                <option value="System">System</option>
+                                <option value="User">User</option>
+                                <option value="Alert">Alert</option>
+                                <option value="Reminder">Reminder</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Notification</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadNotifications();
+            loadUsersForDropdown();
+            loadNotificationStats();
+
+            // Handle form submission
+            $('#send-notification-form').submit(function(e) {
+                e.preventDefault();
+                sendNotification();
+            });
+        });
+
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/Notifications');
+                if (response.ok) {
+                    const notifications = await response.json();
+                    displayNotifications(notifications);
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            } finally {
+                $('#notifications-loading').hide();
+            }
+        }
+
+        function displayNotifications(notifications) {
+            const tbody = $('#notifications-table tbody');
+            tbody.empty();
+
+            if (notifications.length === 0) {
+                $('#no-notifications').show();
+                return;
+            }
+
+            notifications.forEach(notification => {
+                const row = `
+                    <tr class="${notification.isRead ? '' : 'table-info'}">
+                        <td>
+                            <span class="badge ${getNotificationTypeBadge(notification.type)}">
+                                ${notification.type}
+                            </span>
+                        </td>
+                        <td>${notification.message}</td>
+                        <td>${notification.recipientName || 'System'}</td>
+                        <td>${formatDate(notification.createdAt)}</td>
+                        <td>
+                            <span class="badge ${notification.isRead ? 'bg-success' : 'bg-warning'}">
+                                ${notification.isRead ? 'Read' : 'Unread'}
+                            </span>
+                        </td>
+                        <td>
+                            ${!notification.isRead ? 
+                                `<button class="btn btn-sm btn-outline-success" onclick="markAsRead(${notification.id})">Mark Read</button>` : 
+                                ''
+                            }
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteNotification(${notification.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        function getNotificationTypeBadge(type) {
+            switch(type) {
+                case 'System': return 'bg-primary';
+                case 'User': return 'bg-success';
+                case 'Alert': return 'bg-warning';
+                case 'Reminder': return 'bg-info';
+                default: return 'bg-secondary';
+            }
+        }
+
+        async function loadUsersForDropdown() {
+            try {
+                const response = await fetch('/api/Users');
+                if (response.ok) {
+                    const users = await response.json();
+                    const select = $('#recipient');
+                    select.empty();
+                    select.append('<option value="">Select recipient...</option>');
+                    users.forEach(user => {
+                        select.append(`<option value="${user.id}">${user.name || user.email}</option>`);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        async function loadNotificationStats() {
+            try {
+                // Load total notifications
+                const response = await fetch('/api/Notifications');
+                if (response.ok) {
+                    const notifications = await response.json();
+                    $('#total-notifications').text(notifications.length);
+
+                    // Count unread
+                    const unread = notifications.filter(n => !n.isRead).length;
+                    $('#unread-notifications').text(unread);
+
+                    // Count by type
+                    const systemCount = notifications.filter(n => n.type === 'System').length;
+                    const userCount = notifications.filter(n => n.type === 'User').length;
+                    const alertCount = notifications.filter(n => n.type === 'Alert').length;
+                    const reminderCount = notifications.filter(n => n.type === 'Reminder').length;
+
+                    $('#system-count').text(systemCount);
+                    $('#user-count').text(userCount);
+                    $('#alert-count').text(alertCount);
+                    $('#reminder-count').text(reminderCount);
+                }
+
+                // Load unread count from API
+                const unreadResponse = await fetch('/api/Notifications/unread-count');
+                if (unreadResponse.ok) {
+                    const unreadCount = await unreadResponse.json();
+                    $('#unread-notifications').text(unreadCount);
+                }
+            } catch (error) {
+                console.error('Error loading notification stats:', error);
+            }
+        }
+
+        async function sendNotification() {
+            const recipientId = $('#recipient').val();
+            const type = $('#type').val();
+            const message = $('#message').val();
+
+            if (!recipientId || !type || !message) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        recipientId: parseInt(recipientId),
+                        type: type,
+                        message: message,
+                        isRead: false
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Notification sent successfully');
+                    $('#send-notification-form')[0].reset();
+                    loadNotifications();
+                    loadNotificationStats();
+                } else {
+                    alert('Failed to send notification');
+                }
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                alert('Error sending notification');
+            }
+        }
+
+        async function markAsRead(id) {
+            try {
+                const response = await fetch(`/api/Notifications/${id}/mark-read`, {
+                    method: 'PATCH'
+                });
+
+                if (response.ok) {
+                    loadNotifications();
+                    loadNotificationStats();
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async function markAllAsRead() {
+            if (!confirm('Mark all notifications as read?')) return;
+
+            try {
+                const response = await fetch('/api/Notifications');
+                if (response.ok) {
+                    const notifications = await response.json();
+                    const unreadNotifications = notifications.filter(n => !n.isRead);
+
+                    // Mark each unread notification as read
+                    for (const notification of unreadNotifications) {
+                        await fetch(`/api/Notifications/${notification.id}/mark-read`, {
+                            method: 'PATCH'
+                        });
+                    }
+
+                    loadNotifications();
+                    loadNotificationStats();
+                }
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+            }
+        }
+
+        async function deleteNotification(id) {
+            if (!confirm('Delete this notification?')) return;
+
+            try {
+                const response = await fetch(`/api/Notifications/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadNotifications();
+                    loadNotificationStats();
+                }
+            } catch (error) {
+                console.error('Error deleting notification:', error);
+            }
+        }
+
+        async function clearAllNotifications() {
+            if (!confirm('Clear all notifications? This cannot be undone.')) return;
+
+            try {
+                const response = await fetch('/api/Notifications');
+                if (response.ok) {
+                    const notifications = await response.json();
+
+                    // Delete each notification
+                    for (const notification of notifications) {
+                        await fetch(`/api/Notifications/${notification.id}`, {
+                            method: 'DELETE'
+                        });
+                    }
+
+                    loadNotifications();
+                    loadNotificationStats();
+                }
+            } catch (error) {
+                console.error('Error clearing all notifications:', error);
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+}

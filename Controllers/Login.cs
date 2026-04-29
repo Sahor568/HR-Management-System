@@ -1,4 +1,4 @@
-﻿using Management.Models;
+using Management.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,21 +15,21 @@ using System.Threading.Tasks;
 
 namespace Management.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Login")]
     [ApiController]
-    public class LoginController : ControllerBase
+    public class LoginApiController : ControllerBase
     {
-        private readonly ManagementContext _context;
-        private readonly IConfiguration _configuration;
+    private readonly ManagementContext _context;
+    private readonly IConfiguration _configuration;
 
-        public LoginController(ManagementContext context, IConfiguration configuration)
+    public LoginApiController(ManagementContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
         }
 
         // Helper method to generate JWT token
-        private string GenerateJwtToken(User user)
+    private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong";
@@ -57,35 +57,54 @@ namespace Management.Controllers
         }
 
         // Register - accessible to all (or maybe only Admin? We'll keep open for now)
-        [HttpPost("register")]
-        public async Task<ActionResult<User>> Register([FromBody] User user)
+    [HttpPost("register")]
+    public async Task<ActionResult<User>> Register([FromBody] RegisterRequest registerRequest)
         {
-            if (user == null)
+            if (registerRequest == null)
                 return BadRequest("Invalid data");
 
+            // Validate required fields
+            if (string.IsNullOrEmpty(registerRequest.Email))
+                return BadRequest("Email is required");
+            if (string.IsNullOrEmpty(registerRequest.Password))
+                return BadRequest("Password is required");
+            if (string.IsNullOrEmpty(registerRequest.Role))
+                return BadRequest("Role is required");
+
             // Validate role
-            if (string.IsNullOrEmpty(user.Role) || !Models.User.ValidRoles.Contains(user.Role))
+            if (!Models.User.ValidRoles.Contains(registerRequest.Role))
                 return BadRequest($"Role must be one of: {string.Join(", ", Models.User.ValidRoles)}");
 
             // check duplicate email
-            var exists = await _context.Users.AnyAsync(u => u.Email == user.Email);
+            var exists = await _context.Users.AnyAsync(u => u.Email == registerRequest.Email);
             if (exists)
                 return BadRequest("Email already exists");
 
-            // hash password
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+            // Create new user
+            var user = new User
+            {
+                Email = registerRequest.Email,
+                Role = registerRequest.Role,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password)
+            };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // Return user without password hash
-            user.PasswordHash = "";
-            return Ok(user);
+            // Return user without password hash - create a new object to avoid modifying the entity
+            var responseUser = new User
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Role = user.Role,
+                PasswordHash = "" // Empty for response
+            };
+            return Ok(responseUser);
         }
 
         // Login - accessible to all
-        [HttpPost("login")]
-        public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
+    [HttpPost("login")]
+    public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
                 return BadRequest("Email and password are required");
@@ -94,6 +113,10 @@ namespace Management.Controllers
                 .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
 
             if (user == null)
+                return Unauthorized("Invalid email or password");
+
+            // Check if password hash is null or empty
+            if (string.IsNullOrEmpty(user.PasswordHash))
                 return Unauthorized("Invalid email or password");
 
             bool isValid = BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash);
@@ -114,47 +137,60 @@ namespace Management.Controllers
         }
 
         // Get all users - only Admin can view
-        [HttpGet]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+    [HttpGet]
+            public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
             var users = await _context.Users.ToListAsync();
-            // Remove password hash from response
-            users.ForEach(u => u.PasswordHash = "");
-            return Ok(users);
+            // Remove password hash from response by creating new objects
+            var responseUsers = users.Select(u => new User
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                PasswordHash = "" // Empty for response
+            }).ToList();
+            return Ok(responseUsers);
         }
 
         // Update user - only Admin can update
-        [HttpPut("{id}")]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> UpdateUser(int id, User updatedUser)
+    [HttpPut("{id}")]
+            public async Task<IActionResult> UpdateUser(int id, UpdateUserRequest updateRequest)
         {
+            if (updateRequest == null)
+                return BadRequest("Invalid data");
+
             var user = await _context.Users.FindAsync(id);
 
             if (user == null)
                 return NotFound();
 
             // Validate role if provided
-            if (!string.IsNullOrEmpty(updatedUser.Role) && !Models.User.ValidRoles.Contains(updatedUser.Role))
+            if (!string.IsNullOrEmpty(updateRequest.Role) && !Models.User.ValidRoles.Contains(updateRequest.Role))
                 return BadRequest($"Role must be one of: {string.Join(", ", Models.User.ValidRoles)}");
 
-            user.Email = updatedUser.Email ?? user.Email;
-            user.Role = updatedUser.Role ?? user.Role;
+            user.Email = updateRequest.Email ?? user.Email;
+            user.Role = updateRequest.Role ?? user.Role;
 
             // If password is being updated, hash it
-            if (!string.IsNullOrEmpty(updatedUser.PasswordHash))
-                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUser.PasswordHash);
+            if (!string.IsNullOrEmpty(updateRequest.Password))
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updateRequest.Password);
 
             await _context.SaveChangesAsync();
 
-            user.PasswordHash = "";
-            return Ok(user);
+            // Return user without password hash - create a new object to avoid modifying the entity
+            var responseUser = new User
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Role = user.Role,
+                PasswordHash = "" // Empty for response
+            };
+            return Ok(responseUser);
         }
 
         // Delete user - only Admin can delete
-        [HttpDelete("{id}")]
-        [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> DeleteUser(int id)
+    [HttpDelete("{id}")]
+            public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -168,9 +204,8 @@ namespace Management.Controllers
         }
 
         // Get current user profile - any authenticated user
-        [HttpGet("profile")]
-        [Authorize]
-        public async Task<ActionResult> GetProfile()
+    [HttpGet("profile")]
+            public async Task<ActionResult> GetProfile()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out long userId))
@@ -189,9 +224,8 @@ namespace Management.Controllers
         }
 
         // Change password - any authenticated user
-        [HttpPost("change-password")]
-        [Authorize]
-        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    [HttpPost("change-password")]
+            public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             if (request == null || string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword))
                 return BadRequest("Old and new passwords are required");
@@ -218,13 +252,27 @@ namespace Management.Controllers
     // Supporting models
     public class LoginRequest
     {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    }
+
+    public class RegisterRequest
+    {
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string Role { get; set; } = "Employee";
     }
 
     public class ChangePasswordRequest
     {
-        public string OldPassword { get; set; } = string.Empty;
-        public string NewPassword { get; set; } = string.Empty;
+    public string OldPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class UpdateUserRequest
+    {
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
     }
 }

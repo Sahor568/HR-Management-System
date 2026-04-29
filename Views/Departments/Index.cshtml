@@ -1,0 +1,517 @@
+@model IEnumerable<Management.Models.Department>
+
+@{
+    ViewData["Title"] = "Departments Management";
+}
+
+<style>
+    .department-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .department-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .department-card:hover {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+        transform: translateY(-4px);
+    }
+
+    .department-header {
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .department-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .department-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .department-body {
+        padding: 1.5rem;
+    }
+
+    .dept-stat {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .dept-stat:last-child {
+        border-bottom: none;
+    }
+
+    .dept-stat label {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    .dept-stat .value {
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .dept-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .dept-actions button,
+    .dept-actions a {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .department-color-it {
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    }
+
+    .department-color-hr {
+        background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);
+    }
+
+    .department-color-finance {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .department-color-operations {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .department-color-sales {
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    }
+
+    .department-color-marketing {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    }
+
+    .department-list-view {
+        margin-top: 2rem;
+    }
+
+    .list-table {
+        width: 100%;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .view-toggle button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .view-toggle button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .employee-preview {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .employee-preview small {
+        color: var(--text-light);
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Departments Management</h1>
+            <p class="page-subtitle">Manage all departments in your organization</p>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Department
+        </a>
+    </div>
+</div>
+
+<!-- View Toggle -->
+<div class="view-toggle">
+    <button class="active" data-view="card">
+        <i class="fas fa-th"></i> Card View
+    </button>
+    <button data-view="list">
+        <i class="fas fa-list"></i> List View
+    </button>
+</div>
+
+<!-- Card View -->
+<div class="department-grid" id="card-view" style="display: grid;">
+    <!-- IT Department -->
+    <div class="department-card">
+        <div class="department-header department-color-it">
+            <div class="department-icon">
+                <i class="fas fa-laptop"></i>
+            </div>
+            <h3 class="department-name">IT Department</h3>
+        </div>
+        <div class="department-body">
+            <div class="dept-stat">
+                <label>Employees</label>
+                <span class="value">28</span>
+            </div>
+            <div class="dept-stat">
+                <label>Budget</label>
+                <span class="value">$850K</span>
+            </div>
+            <div class="dept-stat">
+                <label>Manager</label>
+                <span class="value">David Lee</span>
+            </div>
+            <div class="dept-stat">
+                <label>Status</label>
+                <span class="badge badge-success">Active</span>
+            </div>
+
+            <div class="employee-preview">
+                <small><strong>Team Members:</strong></small>
+                <div style="display: flex; gap: 0.25rem;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="JD">JD</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="AP">AP</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="RS">RS</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+25</div>
+                </div>
+            </div>
+
+            <div class="dept-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HR Department -->
+    <div class="department-card">
+        <div class="department-header department-color-hr">
+            <div class="department-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="department-name">HR Department</h3>
+        </div>
+        <div class="department-body">
+            <div class="dept-stat">
+                <label>Employees</label>
+                <span class="value">15</span>
+            </div>
+            <div class="dept-stat">
+                <label>Budget</label>
+                <span class="value">$350K</span>
+            </div>
+            <div class="dept-stat">
+                <label>Manager</label>
+                <span class="value">Sarah Miller</span>
+            </div>
+            <div class="dept-stat">
+                <label>Status</label>
+                <span class="badge badge-success">Active</span>
+            </div>
+
+            <div class="employee-preview">
+                <small><strong>Team Members:</strong></small>
+                <div style="display: flex; gap: 0.25rem;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="SM">SM</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #34d399 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="JK">JK</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+13</div>
+                </div>
+            </div>
+
+            <div class="dept-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finance Department -->
+    <div class="department-card">
+        <div class="department-header department-color-finance">
+            <div class="department-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h3 class="department-name">Finance Department</h3>
+        </div>
+        <div class="department-body">
+            <div class="dept-stat">
+                <label>Employees</label>
+                <span class="value">22</span>
+            </div>
+            <div class="dept-stat">
+                <label>Budget</label>
+                <span class="value">$650K</span>
+            </div>
+            <div class="dept-stat">
+                <label>Manager</label>
+                <span class="value">Robert Johnson</span>
+            </div>
+            <div class="dept-stat">
+                <label>Status</label>
+                <span class="badge badge-success">Active</span>
+            </div>
+
+            <div class="employee-preview">
+                <small><strong>Team Members:</strong></small>
+                <div style="display: flex; gap: 0.25rem;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="RJ">RJ</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="LC">LC</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+20</div>
+                </div>
+            </div>
+
+            <div class="dept-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operations Department -->
+    <div class="department-card">
+        <div class="department-header department-color-operations">
+            <div class="department-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h3 class="department-name">Operations</h3>
+        </div>
+        <div class="department-body">
+            <div class="dept-stat">
+                <label>Employees</label>
+                <span class="value">18</span>
+            </div>
+            <div class="dept-stat">
+                <label>Budget</label>
+                <span class="value">$520K</span>
+            </div>
+            <div class="dept-stat">
+                <label>Manager</label>
+                <span class="value">Emma Johnson</span>
+            </div>
+            <div class="dept-stat">
+                <label>Status</label>
+                <span class="badge badge-success">Active</span>
+            </div>
+
+            <div class="employee-preview">
+                <small><strong>Team Members:</strong></small>
+                <div style="display: flex; gap: 0.25rem;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="EJ">EJ</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="MK">MK</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+16</div>
+                </div>
+            </div>
+
+            <div class="dept-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Department -->
+    <div class="department-card">
+        <div class="department-header department-color-sales">
+            <div class="department-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="department-name">Sales</h3>
+        </div>
+        <div class="department-body">
+            <div class="dept-stat">
+                <label>Employees</label>
+                <span class="value">25</span>
+            </div>
+            <div class="dept-stat">
+                <label>Budget</label>
+                <span class="value">$720K</span>
+            </div>
+            <div class="dept-stat">
+                <label>Manager</label>
+                <span class="value">Thomas Wilson</span>
+            </div>
+            <div class="dept-stat">
+                <label>Status</label>
+                <span class="badge badge-success">Active</span>
+            </div>
+
+            <div class="employee-preview">
+                <small><strong>Team Members:</strong></small>
+                <div style="display: flex; gap: 0.25rem;">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="TW">TW</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="LL">LL</div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+23</div>
+                </div>
+            </div>
+
+            <div class="dept-actions">
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i> View
+                </a>
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- List View Table (Hidden by default) -->
+<div id="list-view" style="display: none;">
+    <div class="card">
+        <div class="card-body" style="padding: 0;">
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Department Name</th>
+                            <th>Manager</th>
+                            <th>Employees</th>
+                            <th>Budget</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>IT Department</strong></td>
+                            <td>David Lee</td>
+                            <td>28</td>
+                            <td>$850,000</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>HR Department</strong></td>
+                            <td>Sarah Miller</td>
+                            <td>15</td>
+                            <td>$350,000</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Finance Department</strong></td>
+                            <td>Robert Johnson</td>
+                            <td>22</td>
+                            <td>$650,000</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Operations</strong></td>
+                            <td>Emma Johnson</td>
+                            <td>18</td>
+                            <td>$520,000</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sales</strong></td>
+                            <td>Thomas Wilson</td>
+                            <td>25</td>
+                            <td>$720,000</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                document.getElementById('card-view').style.display = view === 'card' ? 'grid' : 'none';
+                document.getElementById('list-view').style.display = view === 'list' ? 'block' : 'none';
+            });
+        });
+    </script>
+}

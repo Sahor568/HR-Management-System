@@ -1,0 +1,428 @@
+@model IEnumerable<Management.Models.Leave>
+
+@{
+    ViewData["Title"] = "Leave Requests";
+}
+
+<style>
+    .leave-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .leave-stat-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .leave-stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .leave-stat-content h6 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-light);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .leave-stat-content .value {
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .leave-request-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .leave-request-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color);
+    }
+
+    .leave-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .leave-employee {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .leave-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .leave-info h5 {
+        margin: 0;
+        color: var(--text-dark);
+    }
+
+    .leave-info p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .leave-dates {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .date-item label {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+    }
+
+    .date-item .value {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .leave-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .leave-reason {
+        padding: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .tabs-container {
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs {
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .nav-tabs .nav-link {
+        color: var(--text-light);
+        border: none;
+        padding: 1rem 1.5rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: var(--primary-color);
+    }
+
+    .nav-tabs .nav-link.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        background: transparent;
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Leave Requests</h1>
+            <p class="page-subtitle">Manage and track employee leave requests</p>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Leave Request
+        </a>
+    </div>
+</div>
+
+<!-- Leave Statistics -->
+<div class="leave-stats">
+    <div class="leave-stat-card">
+        <div class="leave-stat-icon" style="background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%); color: var(--success-color);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="leave-stat-content">
+            <h6>Approved</h6>
+            <div class="value">32</div>
+        </div>
+    </div>
+
+    <div class="leave-stat-card">
+        <div class="leave-stat-icon" style="background: linear-gradient(135deg, #f59e0b15 0%, #d9790015 100%); color: var(--warning-color);">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="leave-stat-content">
+            <h6>Pending</h6>
+            <div class="value">8</div>
+        </div>
+    </div>
+
+    <div class="leave-stat-card">
+        <div class="leave-stat-icon" style="background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); color: var(--danger-color);">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="leave-stat-content">
+            <h6>Rejected</h6>
+            <div class="value">2</div>
+        </div>
+    </div>
+
+    <div class="leave-stat-card">
+        <div class="leave-stat-icon" style="background: linear-gradient(135deg, #2563eb15 0%, #0ea5e915 100%); color: var(--primary-color);">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="leave-stat-content">
+            <h6>This Month</h6>
+            <div class="value">15</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for Different Views -->
+<div class="tabs-container">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" href="#all" data-bs-toggle="tab">All Requests</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#pending" data-bs-toggle="tab">Pending (8)</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#approved" data-bs-toggle="tab">Approved (32)</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#rejected" data-bs-toggle="tab">Rejected (2)</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- All Requests -->
+        <div class="tab-pane fade show active" id="all">
+            <!-- Leave Request 1 - Pending -->
+            <div class="leave-request-card">
+                <div class="leave-header">
+                    <div class="leave-employee">
+                        <div class="leave-avatar" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
+                        <div class="leave-info">
+                            <h5>John Doe</h5>
+                            <p>IT Department - Senior Developer</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-warning">Pending</span>
+                </div>
+
+                <div class="leave-reason">
+                    <strong>Reason:</strong> Summer Vacation
+                </div>
+
+                <div class="leave-dates">
+                    <div class="date-item">
+                        <label>From Date</label>
+                        <div class="value">May 20, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>To Date</label>
+                        <div class="value">May 27, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>Days</label>
+                        <div class="value">6 Days</div>
+                    </div>
+                </div>
+
+                <div class="leave-actions">
+                    <button class="btn btn-sm btn-success">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-sm btn-danger">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- Leave Request 2 - Pending -->
+            <div class="leave-request-card">
+                <div class="leave-header">
+                    <div class="leave-employee">
+                        <div class="leave-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
+                        <div class="leave-info">
+                            <h5>Sarah Miller</h5>
+                            <p>HR Department - HR Manager</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-warning">Pending</span>
+                </div>
+
+                <div class="leave-reason">
+                    <strong>Reason:</strong> Medical/Sick Leave
+                </div>
+
+                <div class="leave-dates">
+                    <div class="date-item">
+                        <label>From Date</label>
+                        <div class="value">May 10, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>To Date</label>
+                        <div class="value">May 12, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>Days</label>
+                        <div class="value">2 Days</div>
+                    </div>
+                </div>
+
+                <div class="leave-actions">
+                    <button class="btn btn-sm btn-success">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-sm btn-danger">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- Leave Request 3 - Approved -->
+            <div class="leave-request-card">
+                <div class="leave-header">
+                    <div class="leave-employee">
+                        <div class="leave-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
+                        <div class="leave-info">
+                            <h5>Mike Brown</h5>
+                            <p>Finance Department - Financial Analyst</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-success">Approved</span>
+                </div>
+
+                <div class="leave-reason">
+                    <strong>Reason:</strong> Personal Business
+                </div>
+
+                <div class="leave-dates">
+                    <div class="date-item">
+                        <label>From Date</label>
+                        <div class="value">May 5, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>To Date</label>
+                        <div class="value">May 8, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>Days</label>
+                        <div class="value">3 Days</div>
+                    </div>
+                </div>
+
+                <div class="leave-actions">
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- Leave Request 4 - Approved -->
+            <div class="leave-request-card">
+                <div class="leave-header">
+                    <div class="leave-employee">
+                        <div class="leave-avatar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
+                        <div class="leave-info">
+                            <h5>Emma Johnson</h5>
+                            <p>Operations Department - Coordinator</p>
+                        </div>
+                    </div>
+                    <span class="badge badge-success">Approved</span>
+                </div>
+
+                <div class="leave-reason">
+                    <strong>Reason:</strong> Maternity Leave
+                </div>
+
+                <div class="leave-dates">
+                    <div class="date-item">
+                        <label>From Date</label>
+                        <div class="value">April 15, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>To Date</label>
+                        <div class="value">June 30, 2026</div>
+                    </div>
+                    <div class="date-item">
+                        <label>Days</label>
+                        <div class="value">76 Days</div>
+                    </div>
+                </div>
+
+                <div class="leave-actions">
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Details
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Tab -->
+        <div class="tab-pane fade" id="pending">
+            <p style="padding: 2rem; text-align: center; color: var(--text-light);">The pending leave requests are shown in the "All Requests" tab above.</p>
+        </div>
+
+        <!-- Approved Tab -->
+        <div class="tab-pane fade" id="approved">
+            <p style="padding: 2rem; text-align: center; color: var(--text-light);">The approved leave requests are shown in the "All Requests" tab above.</p>
+        </div>
+
+        <!-- Rejected Tab -->
+        <div class="tab-pane fade" id="rejected">
+            <p style="padding: 2rem; text-align: center; color: var(--text-light);">No rejected leave requests.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+}

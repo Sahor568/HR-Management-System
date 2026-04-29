@@ -1,0 +1,387 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-container {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    .chart-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+    }
+
+    .stat-change {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .stat-change.positive {
+        color: var(--success-color);
+    }
+
+    .stat-change.negative {
+        color: var(--danger-color);
+    }
+
+    .row-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Welcome to HR Management System - Overview of your organization</p>
+</div>
+
+<!-- Key Metrics -->
+<div class="dashboard-grid" id="dashboard-stats">
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #2563eb15 0%, #0ea5e915 100%); color: var(--primary-color);">
+            <i class="fas fa-users"></i>
+        </div>
+        <h5 class="kpi-label">Total Employees</h5>
+        <div class="kpi-value" id="total-employees">156</div>
+        <div class="stat-change positive" id="employee-change">
+            <i class="fas fa-arrow-up"></i> 12 this month
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%); color: var(--success-color);">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h5 class="kpi-label">Present Today</h5>
+        <div class="kpi-value" id="present-today">142</div>
+        <div class="stat-change positive" id="attendance-percent">
+            <i class="fas fa-arrow-up"></i> 91% attendance
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #f59e0b15 0%, #d9790015 100%); color: var(--warning-color);">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h5 class="kpi-label">Pending Leaves</h5>
+        <div class="kpi-value" id="pending-leaves">8</div>
+        <div class="stat-change negative" id="leaves-change">
+            <i class="fas fa-arrow-down"></i> 3 from this week
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); color: var(--danger-color);">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <h5 class="kpi-label">Monthly Payroll</h5>
+        <div class="kpi-value" id="monthly-payroll">$485K</div>
+        <div class="stat-change" id="payroll-period">
+            <i class="fas fa-calendar"></i> Current Month
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #8b5cf615 0%, #7c3aed15 100%); color: #7c3aed;">
+            <i class="fas fa-sitemap"></i>
+        </div>
+        <h5 class="kpi-label">Departments</h5>
+        <div class="kpi-value" id="total-departments">8</div>
+        <div class="stat-change">
+            <i class="fas fa-building"></i> Active
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-icon" style="background: linear-gradient(135deg, #06b6d415 0%, #0891b215 100%); color: #0891b2;">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <h5 class="kpi-label">Avg. Salary</h5>
+        <div class="kpi-value" id="avg-salary">$3.1K</div>
+        <div class="stat-change">
+            <i class="fas fa-arrow-right"></i> Per Employee
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row-cards">
+    <!-- Attendance Trend Chart -->
+    <div class="chart-container">
+        <h5 class="chart-title">
+            <i class="fas fa-chart-line"></i> Attendance Trend (Last 7 Days)
+        </h5>
+        <div style="height: 200px; display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 85%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Mon</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 75%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Tue</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 95%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Wed</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 70%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Thu</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 88%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Fri</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 50%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Sat</span>
+            </div>
+            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 45%; border-radius: 6px; position: relative;">
+                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Sun</span>
+            </div>
+        </div>
+        <div style="margin-top: 40px; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <small class="text-muted">Average attendance: 87.8%</small>
+        </div>
+    </div>
+
+    <!-- Leave Status -->
+    <div class="chart-container">
+        <h5 class="chart-title">
+            <i class="fas fa-calendar-check"></i> Leave Status
+        </h5>
+        <div style="padding: 1rem;">
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-light);">Approved</span>
+                    <strong>32</strong>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 65%; height: 100%; background: var(--success-color);"></div>
+                </div>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-light);">Pending</span>
+                    <strong>8</strong>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 16%; height: 100%; background: var(--warning-color);"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.9rem; color: var(--text-light);">Rejected</span>
+                    <strong>2</strong>
+                </div>
+                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 4%; height: 100%; background: var(--danger-color);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Distribution -->
+    <div class="chart-container">
+        <h5 class="chart-title">
+            <i class="fas fa-users"></i> Department Distribution
+        </h5>
+        <table style="width: 100%; font-size: 0.9rem;">
+            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">IT</td>
+                <td style="text-align: right; font-weight: 600; color: var(--primary-color);">28</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">HR</td>
+                <td style="text-align: right; font-weight: 600; color: var(--success-color);">15</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">Finance</td>
+                <td style="text-align: right; font-weight: 600; color: var(--warning-color);">22</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">Operations</td>
+                <td style="text-align: right; font-weight: 600;">18</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">Sales</td>
+                <td style="text-align: right; font-weight: 600;">25</td>
+            </tr>
+            <tr style="padding: 0.5rem 0;">
+                <td style="padding: 0.75rem 0;">Others</td>
+                <td style="text-align: right; font-weight: 600;">48</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h5 style="margin: 0;">
+            <i class="fas fa-clock"></i> Recent Activities
+        </h5>
+    </div>
+    <div class="card-body">
+        <div style="max-height: 300px; overflow-y: auto;">
+            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">New Employee Added</p>
+                    <small style="color: var(--text-light);">John Doe joined IT Department</small>
+                    <br>
+                    <small style="color: var(--text-light);">2 hours ago</small>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%); display: flex; align-items: center; justify-content: center; color: var(--success-color); flex-shrink: 0;">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Leave Approved</p>
+                    <small style="color: var(--text-light);">Sarah's vacation leave for May 15-20 approved</small>
+                    <br>
+                    <small style="color: var(--text-light);">4 hours ago</small>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b15 0%, #d9790015 100%); display: flex; align-items: center; justify-content: center; color: var(--warning-color); flex-shrink: 0;">
+                    <i class="fas fa-money-bill"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Payroll Generated</p>
+                    <small style="color: var(--text-light);">Monthly payroll for April processed successfully</small>
+                    <br>
+                    <small style="color: var(--text-light);">6 hours ago</small>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; padding: 1rem 0;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); display: flex; align-items: center; justify-content: center; color: var(--danger-color); flex-shrink: 0;">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                <div style="flex: 1;">
+                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Employee Absent</p>
+                    <small style="color: var(--text-light);">Mike is marked absent for today</small>
+                    <br>
+                    <small style="color: var(--text-light);">1 day ago</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <a href="#" class="btn btn-primary w-100">
+        <i class="fas fa-plus"></i> Add Employee
+    </a>
+    <a href="#" class="btn btn-outline-primary w-100">
+        <i class="fas fa-file-alt"></i> View Reports
+    </a>
+    <a href="#" class="btn btn-outline-primary w-100">
+        <i class="fas fa-calendar"></i> Manage Leaves
+    </a>
+    <a href="#" class="btn btn-outline-primary w-100">
+        <i class="fas fa-cog"></i> Settings
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        // Dashboard-specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard page loaded');
+            
+            // If the dashboard API is available, use it to update stats
+            if (window.HRManagement && window.HRManagement.API.Dashboard) {
+                // Show loading state
+                const kpiValues = document.querySelectorAll('.kpi-value');
+                kpiValues.forEach(el => {
+                    el.innerHTML = '<span class="loading-dots">...</span>';
+                });
+                
+                // Fetch and update dashboard stats
+                window.HRManagement.API.Dashboard.getStats()
+                    .then(stats => {
+                        // Update all stats
+                        if (stats.totalEmployees !== undefined) {
+                            document.getElementById('total-employees').textContent = stats.totalEmployees;
+                        }
+                        if (stats.presentToday !== undefined) {
+                            document.getElementById('present-today').textContent = stats.presentToday;
+                            
+                            // Calculate and update attendance percentage
+                            const totalEmployees = stats.totalEmployees || 156;
+                            const attendancePercent = totalEmployees > 0
+                                ? Math.round((stats.presentToday / totalEmployees) * 100)
+                                : 0;
+                            document.getElementById('attendance-percent').innerHTML =
+                                `<i class="fas fa-arrow-up"></i> ${attendancePercent}% attendance`;
+                        }
+                        if (stats.pendingLeaves !== undefined) {
+                            document.getElementById('pending-leaves').textContent = stats.pendingLeaves;
+                        }
+                        if (stats.totalPayroll !== undefined) {
+                            const formatted = new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0
+                            }).format(stats.totalPayroll);
+                            document.getElementById('monthly-payroll').textContent = formatted;
+                        }
+                        if (stats.totalDepartments !== undefined) {
+                            document.getElementById('total-departments').textContent = stats.totalDepartments;
+                        }
+                        
+                        // Calculate average salary if we have both payroll and employees
+                        if (stats.totalPayroll !== undefined && stats.totalEmployees !== undefined && stats.totalEmployees > 0) {
+                            const avgSalary = Math.round(stats.totalPayroll / stats.totalEmployees);
+                            const formattedAvg = new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0
+                            }).format(avgSalary);
+                            document.getElementById('avg-salary').textContent = formattedAvg;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to load dashboard stats:', error);
+                        // Revert to original values
+                        document.getElementById('total-employees').textContent = '156';
+                        document.getElementById('present-today').textContent = '142';
+                        document.getElementById('pending-leaves').textContent = '8';
+                        document.getElementById('monthly-payroll').textContent = '$485K';
+                        document.getElementById('total-departments').textContent = '8';
+                        document.getElementById('avg-salary').textContent = '$3.1K';
+                        
+                        // Show error notification
+                        if (window.HRManagement && window.HRManagement.Utils.showNotification) {
+                            window.HRManagement.Utils.showNotification(
+                                'Dashboard Data',
+                                'Using sample data. API connection failed.',
+                                'warning'
+                            );
+                        }
+                    });
+            }
+        });
+    </script>
+}
