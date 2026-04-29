@@ -1,0 +1,181 @@
+@model IEnumerable<Management.Models.Role>
+
+@{
+    ViewData["Title"] = "Roles Management";
+}
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Roles & Permissions</h1>
+            <p class="page-subtitle">Manage system roles and permissions</p>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Role
+        </a>
+    </div>
+</div>
+
+<!-- Roles Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <!-- Admin Role -->
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+            <h5 style="margin: 0;">
+                <i class="fas fa-crown"></i> Administrator
+            </h5>
+        </div>
+        <div class="card-body">
+            <p style="color: var(--text-light); margin-bottom: 1rem;">Full system access and control.</p>
+            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
+            <ul style="margin: 0; padding-left: 1.5rem;">
+                <li>Manage Users</li>
+                <li>Manage Departments</li>
+                <li>Manage Employees</li>
+                <li>View Reports</li>
+                <li>Process Payroll</li>
+                <li>System Settings</li>
+                <li>View Logs</li>
+            </ul>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100" disabled>Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HR Role -->
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); color: white;">
+            <h5 style="margin: 0;">
+                <i class="fas fa-briefcase"></i> HR Manager
+            </h5>
+        </div>
+        <div class="card-body">
+            <p style="color: var(--text-light); margin-bottom: 1rem;">HR operations and employee management.</p>
+            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
+            <ul style="margin: 0; padding-left: 1.5rem;">
+                <li>Manage Employees</li>
+                <li>Manage Departments</li>
+                <li>Process Leaves</li>
+                <li>Track Attendance</li>
+                <li>View Payroll</li>
+                <li>Generate Reports</li>
+            </ul>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Role -->
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); color: white;">
+            <h5 style="margin: 0;">
+                <i class="fas fa-user"></i> Employee
+            </h5>
+        </div>
+        <div class="card-body">
+            <p style="color: var(--text-light); margin-bottom: 1rem;">Basic employee access and self-service.</p>
+            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
+            <ul style="margin: 0; padding-left: 1.5rem;">
+                <li>View Own Profile</li>
+                <li>Request Leave</li>
+                <li>View Attendance</li>
+                <li>View Payslip</li>
+                <li>Update Profile</li>
+                <li>View Dashboard</li>
+            </ul>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                <button class="btn btn-sm btn-outline-danger w-100" disabled>Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permission Matrix -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h5 style="margin: 0;">
+            <i class="fas fa-th"></i> Permission Matrix
+        </h5>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table class="table">
+                <thead>
+                    <tr style="background: var(--light-bg);">
+                        <th>Permission</th>
+                        <th style="text-align: center;">Admin</th>
+                        <th style="text-align: center;">HR Manager</th>
+                        <th style="text-align: center;">Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Manage Users</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Manage Departments</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Manage Employees</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Process Leaves</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Process Payroll</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Track Attendance</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>View Payroll</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Generate Reports</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>System Settings</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                    <tr>
+                        <td>View Logs</td>
+                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

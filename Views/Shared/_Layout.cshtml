@@ -1,59 +1,625 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Management</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - HR Management System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Management.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--white);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+
+        .sidebar-logo {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+
+        .nav-menu li {
+            margin: 0.5rem 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+            border-left-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-section-title {
+            padding: 1rem 1.5rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation Bar */
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 1rem;
+            background: var(--light-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background-color: #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .breadcrumb {
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb-item {
+            color: var(--text-light);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-dark);
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--text-dark);
+        }
+
+        .page-subtitle {
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        /* Cards */
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-color);
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            background-color: transparent;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        /* Tables */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            border-color: var(--border-color);
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: var(--border-color);
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--light-bg);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #78350f;
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-4px);
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+
+        .kpi-label {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-left: 280px;
+        }
+
+        /* Forms */
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.6rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .footer {
+                margin-left: 0;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .topbar {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Management</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    <div class="page-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>HR System</h3>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Dashboard">
+                                <i class="fas fa-chart-line"></i> Dashboard
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Settings">Settings</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("HR")))
+
+                        <div class="nav-section-title">Management</div>
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("HR"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Logs" asp-action="Index">
-                                    <i class="fas fa-clipboard-list"></i> System Logs
+                            <li>
+                                <a class="nav-link" asp-controller="Employees" asp-action="Index">
+                                    <i class="fas fa-users"></i> Employees
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Departments" asp-action="Index">
+                                    <i class="fas fa-sitemap"></i> Departments
                                 </a>
                             </li>
                         }
-                    </ul>
+
+                        <div class="nav-section-title">HR Operations</div>
+
+                        <li>
+                            <a class="nav-link" asp-controller="Attendances" asp-action="Index">
+                                <i class="fas fa-clock"></i> Attendance
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" asp-controller="Leaves" asp-action="Index">
+                                <i class="fas fa-calendar-alt"></i> Leave Requests
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("HR"))
+                        {
+                            <li>
+                                <a class="nav-link" asp-controller="Payrolls" asp-action="Index">
+                                    <i class="fas fa-money-bill-wave"></i> Payroll
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Holidays" asp-action="Index">
+                                    <i class="fas fa-star"></i> Holidays
+                                </a>
+                            </li>
+                        }
+
+                        <div class="nav-section-title">Admin Panel</div>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li>
+                                <a class="nav-link" asp-controller="Users" asp-action="Index">
+                                    <i class="fas fa-id-card"></i> Users
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Roles" asp-action="Index">
+                                    <i class="fas fa-shield-alt"></i> Roles
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Reports" asp-action="Index">
+                                    <i class="fas fa-file-pdf"></i> Reports
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Logs" asp-action="Index">
+                                    <i class="fas fa-history"></i> System Logs
+                                </a>
+                            </li>
+                        }
+
+                        <div class="nav-section-title">Account</div>
+
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Settings">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Logout">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Register">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation Bar -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="topbar">
+                    <div class="topbar-left">
+                        <h5 style="margin: 0;">@ViewData["Title"]</h5>
+                    </div>
+                    <div class="topbar-right">
+                        <button class="btn btn-light" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <div class="user-profile dropdown">
+                            <div class="user-avatar" role="button" data-bs-toggle="dropdown">
+                                <span>@User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value?.Substring(0, 1).ToUpper()</span>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Profile"><i class="fas fa-user"></i> Profile</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Settings"><i class="fas fa-cog"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" asp-controller="Home" asp-action="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
+            }
+
+            <!-- Page Content -->
+            <div class="content">
+                @RenderBody()
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Management - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 HR Management System. All rights reserved.</p>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

@@ -1,0 +1,335 @@
+@model IEnumerable<Management.Models.Holiday>
+
+@{
+    ViewData["Title"] = "Holidays Management";
+}
+
+<style>
+    .holiday-calendar {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .calendar-day:hover {
+        background: var(--light-bg);
+        border-color: var(--primary-color);
+    }
+
+    .calendar-day.holiday {
+        background: linear-gradient(135deg, #fef3c7 0%, #fbbf2415 100%);
+        border-color: var(--warning-color);
+    }
+
+    .calendar-day.today {
+        background: linear-gradient(135deg, #dbeafe 0%, #2563eb15 100%);
+        border-color: var(--primary-color);
+    }
+
+    .calendar-day-number {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-dark);
+    }
+
+    .calendar-day-holiday {
+        font-size: 0.7rem;
+        color: var(--warning-color);
+        margin-top: 0.25rem;
+    }
+
+    .holiday-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .holiday-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .holiday-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color);
+    }
+
+    .holiday-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .holiday-date {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .holiday-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0.5rem 0;
+        color: var(--text-dark);
+    }
+
+    .holiday-day {
+        color: var(--secondary-color);
+        font-size: 0.85rem;
+    }
+
+    .holiday-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .holiday-actions button,
+    .holiday-actions a {
+        flex: 1;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .upcoming-holidays {
+        background: var(--light-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .holiday-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .holiday-row:last-child {
+        border-bottom: none;
+    }
+
+    .holiday-row-name {
+        font-weight: 600;
+    }
+
+    .holiday-row-date {
+        color: var(--text-light);
+    }
+
+    .days-remaining {
+        background: linear-gradient(135deg, #fef3c7 0%, #fbbf2415 100%);
+        color: #78350f;
+        padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Holidays Management</h1>
+            <p class="page-subtitle">Manage public holidays and company holidays</p>
+        </div>
+        <a href="#" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Holiday
+        </a>
+    </div>
+</div>
+
+<!-- Upcoming Holidays -->
+<div class="upcoming-holidays">
+    <h5 style="margin-top: 0;">
+        <i class="fas fa-calendar-check"></i> Upcoming Holidays
+    </h5>
+    <div class="holiday-row">
+        <div>
+            <div class="holiday-row-name">Labour Day</div>
+            <div class="holiday-row-date">May 1, 2026 (Wednesday)</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="days-remaining">1 day away</div>
+        </div>
+    </div>
+    <div class="holiday-row">
+        <div>
+            <div class="holiday-row-name">Memorial Day</div>
+            <div class="holiday-row-date">May 25, 2026 (Monday)</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="days-remaining">25 days away</div>
+        </div>
+    </div>
+    <div class="holiday-row">
+        <div>
+            <div class="holiday-row-name">Independence Day</div>
+            <div class="holiday-row-date">July 4, 2026 (Saturday)</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="days-remaining">65 days away</div>
+        </div>
+    </div>
+    <div class="holiday-row">
+        <div>
+            <div class="holiday-row-name">Thanksgiving</div>
+            <div class="holiday-row-date">November 26, 2026 (Thursday)</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="days-remaining">210 days away</div>
+        </div>
+    </div>
+</div>
+
+<!-- Holiday Cards -->
+<h5 style="margin-bottom: 1.5rem;">
+    <i class="fas fa-list"></i> All Holidays
+</h5>
+
+<div class="holiday-list">
+    <!-- Holiday 1 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: var(--warning-color);">
+            <i class="fas fa-star"></i>
+        </div>
+        <div class="holiday-date">May 1, 2026</div>
+        <h6 class="holiday-name">Labour Day</h6>
+        <div class="holiday-day">Wednesday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+
+    <!-- Holiday 2 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: #e74c3c;">
+            <i class="fas fa-heart"></i>
+        </div>
+        <div class="holiday-date">May 25, 2026</div>
+        <h6 class="holiday-name">Memorial Day</h6>
+        <div class="holiday-day">Monday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+
+    <!-- Holiday 3 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: #3498db;">
+            <i class="fas fa-flag"></i>
+        </div>
+        <div class="holiday-date">July 4, 2026</div>
+        <h6 class="holiday-name">Independence Day</h6>
+        <div class="holiday-day">Saturday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+
+    <!-- Holiday 4 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: #e67e22;">
+            <i class="fas fa-leaf"></i>
+        </div>
+        <div class="holiday-date">November 26, 2026</div>
+        <h6 class="holiday-name">Thanksgiving</h6>
+        <div class="holiday-day">Thursday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+
+    <!-- Holiday 5 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: #27ae60;">
+            <i class="fas fa-snowflake"></i>
+        </div>
+        <div class="holiday-date">December 25, 2026</div>
+        <h6 class="holiday-name">Christmas Day</h6>
+        <div class="holiday-day">Friday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+
+    <!-- Holiday 6 -->
+    <div class="holiday-card">
+        <div class="holiday-icon" style="color: #2c3e50;">
+            <i class="fas fa-gift"></i>
+        </div>
+        <div class="holiday-date">January 1, 2027</div>
+        <h6 class="holiday-name">New Year's Day</h6>
+        <div class="holiday-day">Friday - National Holiday</div>
+        <div class="holiday-actions">
+            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Holiday Statistics -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h5 style="margin: 0;">
+            <i class="fas fa-chart-bar"></i> Holiday Statistics
+        </h5>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem;">12</div>
+                <div style="font-size: 0.9rem; color: var(--text-light);">Total Holidays</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--success-color); margin-bottom: 0.5rem;">8</div>
+                <div style="font-size: 0.9rem; color: var(--text-light);">National Holidays</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--warning-color); margin-bottom: 0.5rem;">4</div>
+                <div style="font-size: 0.9rem; color: var(--text-light);">Company Holidays</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--danger-color); margin-bottom: 0.5rem;">15</div>
+                <div style="font-size: 0.9rem; color: var(--text-light);">Upcoming Days Off</div>
+            </div>
+        </div>
+    </div>
+</div>

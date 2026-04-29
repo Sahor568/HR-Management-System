@@ -9,17 +9,45 @@ namespace Management.Controllers
     {
         public IActionResult Index()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Dashboard");
+            }
+            return View();
+        }
+
+        [Authorize]
+        public IActionResult Dashboard()
+        {
+            ViewData["Title"] = "Dashboard";
+            return View();
+        }
+
+        [Authorize]
+        public IActionResult Profile()
+        {
+            ViewData["Title"] = "My Profile";
+            return View();
+        }
+
+        [Authorize]
+        public IActionResult Settings()
+        {
+            ViewData["Title"] = "Settings";
             return View();
         }
 
         public IActionResult Privacy()
         {
+            ViewData["Title"] = "Privacy Policy";
             return View();
         }
 
-        public IActionResult Settings()
+        [Authorize]
+        public IActionResult Logout()
         {
-            return View();
+            // Sign out logic would go here
+            return RedirectToAction("Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
