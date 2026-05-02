@@ -23,7 +23,6 @@ namespace Management.Controllers
 
         // GET: api/Holidays
         [HttpGet("api/Holidays")]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<object>>> GetHolidays([FromQuery] int? year = null)
         {
             var query = _context.Holidays.AsQueryable();
