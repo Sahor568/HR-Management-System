@@ -83,6 +83,12 @@ try
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
         options.Cookie.Name = "HRManagement.Auth";
+        // Ensure unauthenticated requests to protected routes redirect to login
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        };
     })
     .AddJwtBearer(options =>
     {

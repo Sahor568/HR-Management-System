@@ -2,6 +2,13 @@
     ViewData["Title"] = "Dashboard";
 }
 
+@if (!User.Identity?.IsAuthenticated == true)
+{
+    <script>
+        window.location.href = '/Home/Index';
+    </script>
+}
+
 <style>
     .dashboard-grid {
         display: grid;

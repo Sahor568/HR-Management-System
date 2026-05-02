@@ -49,6 +49,10 @@ namespace Management.Controllers
         [Authorize]
         public IActionResult Dashboard()
         {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return RedirectToAction("Index");
+            }
             return View();
         }
 
