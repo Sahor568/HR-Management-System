@@ -74,27 +74,21 @@ function checkAuth() {
     return true;
 }
 
-// Utility function for making API requests with JWT token
+// Utility function for making API requests with cookie-based authentication
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    const token = getAuthToken();
     const headers = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     };
     
-    // Add JWT token to Authorization header if available
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    
     const defaultOptions = {
         headers,
-        credentials: 'include'
+        credentials: 'include'  // Include cookies for authentication
     };
     
-    // Merge headers properly (don't overwrite Authorization header)
+    // Merge headers properly
     const mergedOptions = { ...defaultOptions, ...options };
     if (options.headers) {
         mergedOptions.headers = { ...defaultOptions.headers, ...options.headers };
