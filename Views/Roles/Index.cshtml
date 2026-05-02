@@ -1,8 +1,124 @@
-@model IEnumerable<Management.Models.Role>
-
 @{
     ViewData["Title"] = "Roles Management";
 }
+
+<style>
+    .role-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .role-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color);
+    }
+
+    .role-card-header {
+        padding: 1.5rem;
+        color: white;
+    }
+
+    .role-card-header h5 {
+        margin: 0;
+    }
+
+    .role-card-body {
+        padding: 1.5rem;
+    }
+
+    .permission-list {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .permission-list li {
+        padding: 0.25rem 0;
+        color: var(--text-dark);
+    }
+
+    .user-count-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    .permission-matrix td,
+    .permission-matrix th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .permission-matrix td:first-child,
+    .permission-matrix th:first-child {
+        text-align: left;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-dialog {
+        background: var(--white);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-body-custom {
+        padding: 1.5rem;
+    }
+
+    .modal-footer-custom {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-light);
+    }
+
+    .close-btn:hover {
+        color: var(--text-dark);
+    }
+</style>
 
 <div class="page-header">
     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -10,172 +126,256 @@
             <h1 class="page-title">Roles & Permissions</h1>
             <p class="page-subtitle">Manage system roles and permissions</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openCreateModal()">
             <i class="fas fa-plus"></i> Add Role
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- Roles Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-    <!-- Admin Role -->
-    <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
-            <h5 style="margin: 0;">
-                <i class="fas fa-crown"></i> Administrator
-            </h5>
-        </div>
-        <div class="card-body">
-            <p style="color: var(--text-light); margin-bottom: 1rem;">Full system access and control.</p>
-            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
-            <ul style="margin: 0; padding-left: 1.5rem;">
-                <li>Manage Users</li>
-                <li>Manage Departments</li>
-                <li>Manage Employees</li>
-                <li>View Reports</li>
-                <li>Process Payroll</li>
-                <li>System Settings</li>
-                <li>View Logs</li>
-            </ul>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100" disabled>Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- HR Role -->
-    <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); color: white;">
-            <h5 style="margin: 0;">
-                <i class="fas fa-briefcase"></i> HR Manager
-            </h5>
-        </div>
-        <div class="card-body">
-            <p style="color: var(--text-light); margin-bottom: 1rem;">HR operations and employee management.</p>
-            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
-            <ul style="margin: 0; padding-left: 1.5rem;">
-                <li>Manage Employees</li>
-                <li>Manage Departments</li>
-                <li>Process Leaves</li>
-                <li>Track Attendance</li>
-                <li>View Payroll</li>
-                <li>Generate Reports</li>
-            </ul>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Employee Role -->
-    <div class="card">
-        <div class="card-header" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); color: white;">
-            <h5 style="margin: 0;">
-                <i class="fas fa-user"></i> Employee
-            </h5>
-        </div>
-        <div class="card-body">
-            <p style="color: var(--text-light); margin-bottom: 1rem;">Basic employee access and self-service.</p>
-            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
-            <ul style="margin: 0; padding-left: 1.5rem;">
-                <li>View Own Profile</li>
-                <li>Request Leave</li>
-                <li>View Attendance</li>
-                <li>View Payslip</li>
-                <li>Update Profile</li>
-                <li>View Dashboard</li>
-            </ul>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100" disabled>Delete</button>
-            </div>
+<div id="roles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <div class="text-center" style="padding: 2rem; grid-column: 1 / -1;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 </div>
 
-<!-- Permission Matrix -->
-<div class="card" style="margin-top: 2rem;">
-    <div class="card-header">
-        <h5 style="margin: 0;">
-            <i class="fas fa-th"></i> Permission Matrix
-        </h5>
-    </div>
-    <div class="card-body" style="padding: 0;">
-        <div style="overflow-x: auto;">
-            <table class="table">
-                <thead>
-                    <tr style="background: var(--light-bg);">
-                        <th>Permission</th>
-                        <th style="text-align: center;">Admin</th>
-                        <th style="text-align: center;">HR Manager</th>
-                        <th style="text-align: center;">Employee</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Manage Users</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Manage Departments</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Manage Employees</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Process Leaves</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Process Payroll</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Track Attendance</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>View Payroll</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Generate Reports</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>System Settings</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                    <tr>
-                        <td>View Logs</td>
-                        <td style="text-align: center;"><i class="fas fa-check" style="color: var(--success-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                        <td style="text-align: center;"><i class="fas fa-times" style="color: var(--danger-color);"></i></td>
-                    </tr>
-                </tbody>
-            </table>
+
+
+<!-- Create/Edit Role Modal -->
+<div class="modal-overlay" id="roleModal">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5 id="roleModalTitle">Add Role</h5>
+            <button class="close-btn" onclick="closeModal('roleModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <form id="roleForm">
+                <input type="hidden" id="roleId" />
+                <div class="mb-3">
+                    <label for="roleName" class="form-label">Role Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="roleName" required placeholder="e.g., Manager" />
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('roleModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveRole()">
+                <i class="fas fa-save"></i> Save Role
+            </button>
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+        <div class="modal-header-custom">
+            <h5>Confirm Delete</h5>
+            <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <p>Are you sure you want to delete role <strong id="deleteRoleName"></strong>?</p>
+            <p class="text-muted">This action cannot be undone. Users with this role will need to be reassigned.</p>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allRoles = [];
+        let rolesWithCounts = [];
+        let roleMetadata = {};
+        let deleteId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRoles();
+        });
+
+        async function loadRoles() {
+            try {
+                // Load roles and metadata in parallel
+                const [roles, systemRoles, metadata, counts] = await Promise.allSettled([
+                    RolesAPI.getAll(),
+                    RolesAPI.getSystemRoles(),
+                    RolesAPI.getMetadata(),
+                    RolesAPI.getWithUserCount()
+                ]);
+
+                if (roles.status === 'fulfilled') {
+                    allRoles = roles.value || [];
+                } else {
+                    console.error('Error loading roles:', roles.reason);
+                    allRoles = [];
+                }
+
+                if (systemRoles.status === 'fulfilled' && systemRoles.value) {
+                    systemRoles.value.forEach(sr => {
+                        if (!allRoles.find(r => r.name === sr.name)) {
+                            allRoles.unshift({ id: sr.name, name: sr.name });
+                        }
+                    });
+                }
+
+                if (metadata.status === 'fulfilled') {
+                    roleMetadata = metadata.value;
+                } else {
+                    console.error('Error loading role metadata:', metadata.reason);
+                    roleMetadata = {};
+                }
+
+                if (counts.status === 'fulfilled') {
+                    rolesWithCounts = counts.value;
+                } else {
+                    console.error('Error loading role counts:', counts.reason);
+                    rolesWithCounts = allRoles;
+                }
+
+                renderRoles();
+            } catch (error) {
+                console.error('Error loading roles:', error);
+                document.getElementById('roles-grid').innerHTML = '<div class="text-center text-danger" style="grid-column:1/-1;padding:2rem;">Failed to load roles.</div>';
+            }
+        }
+
+        function getUserCount(roleName) {
+            if (Array.isArray(rolesWithCounts)) {
+                const found = rolesWithCounts.find(r => r.name === roleName);
+                if (found && found.userCount !== undefined) return found.userCount;
+            }
+            return 0;
+        }
+
+        function renderRoles() {
+            const container = document.getElementById('roles-grid');
+
+            if (allRoles.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted" style="grid-column:1/-1;padding:2rem;">No roles found.</div>';
+                return;
+            }
+
+            // Default metadata for roles not found in fetched metadata
+            const defaultMeta = {
+                icon: 'fa-user-tag',
+                gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                description: 'Custom role with configurable permissions.',
+                permissions: ['View Dashboard']
+            };
+
+            container.innerHTML = allRoles.map(role => {
+                // Get metadata for this role from fetched data or use default
+                const meta = roleMetadata[role.name] || defaultMeta;
+                const userCount = getUserCount(role.name);
+                const isSystemRole = ['Admin', 'HR', 'Employee'].includes(role.name);
+
+                return `
+                    <div class="role-card">
+                        <div class="role-card-header" style="background: ${meta.gradient};">
+                            <h5>
+                                <i class="fas ${meta.icon}"></i> ${escapeHtml(role.name)}
+                                <span class="user-count-badge">${userCount} user${userCount !== 1 ? 's' : ''}</span>
+                            </h5>
+                        </div>
+                        <div class="role-card-body">
+                            <p style="color: var(--text-light); margin-bottom: 1rem;">${meta.description}</p>
+                            <h6 style="margin-bottom: 0.75rem;">Permissions:</h6>
+                            <ul class="permission-list">
+                                ${Array.isArray(meta.permissions) ? meta.permissions.map(p => `<li>${p}</li>`).join('') : '<li>No permissions defined</li>'}
+                            </ul>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                                <button class="btn btn-sm btn-outline-primary w-100" onclick="openEditModal(${role.id})">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="openDeleteModal(${role.id}, '${escapeHtml(role.name)}')" ${isSystemRole ? 'disabled' : ''}>Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openCreateModal() {
+            document.getElementById('roleModalTitle').textContent = 'Add Role';
+            document.getElementById('roleId').value = '';
+            document.getElementById('roleName').value = '';
+            document.getElementById('roleModal').classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const role = allRoles.find(r => r.id === id);
+            if (!role) return;
+
+            document.getElementById('roleModalTitle').textContent = 'Edit Role';
+            document.getElementById('roleId').value = role.id;
+            document.getElementById('roleName').value = role.name;
+            document.getElementById('roleModal').classList.add('active');
+        }
+
+        async function saveRole() {
+            const id = document.getElementById('roleId').value;
+            const name = document.getElementById('roleName').value.trim();
+
+            if (!name) {
+                showNotification('Validation Error', 'Role name is required.', 'danger');
+                return;
+            }
+
+            try {
+                if (id) {
+                    await RolesAPI.update(id, { name });
+                    showNotification('Success', 'Role updated successfully!', 'success');
+                } else {
+                    await RolesAPI.create({ name });
+                    showNotification('Success', 'Role created successfully!', 'success');
+                }
+                closeModal('roleModal');
+                loadRoles();
+            } catch (error) {
+                console.error('Error saving role:', error);
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            deleteId = id;
+            document.getElementById('deleteRoleName').textContent = name;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        async function confirmDelete() {
+            if (!deleteId) return;
+            try {
+                await RolesAPI.delete(deleteId);
+                showNotification('Success', 'Role deleted successfully!', 'success');
+                closeModal('deleteModal');
+                deleteId = null;
+                loadRoles();
+            } catch (error) {
+                console.error('Error deleting role:', error);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+}

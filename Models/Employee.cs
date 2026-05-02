@@ -1,4 +1,4 @@
-﻿namespace Management.Models
+namespace Management.Models
 {
     public class Employee
     {
@@ -7,13 +7,15 @@
         public int Age { get; set; }
         public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
+        public string Position { get; set; } = string.Empty;
+        public DateTime HireDate { get; set; } = DateTime.UtcNow;
 
         public decimal Salary { get; set; }
 
         public long DepartmentId { get; set; }
         public Department? Department { get; set; }
 
-        public long UserId { get; set; }
+        public long? UserId { get; set; }
         public User? User { get; set; }
 
         // Supervisor relationship

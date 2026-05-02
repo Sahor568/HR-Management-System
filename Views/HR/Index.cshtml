@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Employee Management</h5>
                     <p class="card-text">View and manage all employees in the organization.</p>
-                    <a href="/Employees/Index" class="btn btn-primary">Go to Employees</a>
+                    <a href="/Employees" class="btn btn-primary">Go to Employees</a>
                 </div>
             </div>
         </div>
@@ -27,7 +27,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Leave Requests</h5>
                     <p class="card-text">Approve or reject employee leave requests.</p>
-                    <a href="/Leaves/Index" class="btn btn-primary">Manage Leaves</a>
+                    <a href="/Leaves" class="btn btn-primary">Manage Leaves</a>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Attendance</h5>
                     <p class="card-text">Monitor employee attendance and time tracking.</p>
-                    <a href="/Attendances/Index" class="btn btn-primary">View Attendance</a>
+                    <a href="/Attendances" class="btn btn-primary">View Attendance</a>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Payroll</h5>
                     <p class="card-text">Process payroll and manage salary information.</p>
-                    <a href="/Payrolls/Index" class="btn btn-primary">Go to Payroll</a>
+                    <a href="/Payrolls" class="btn btn-primary">Go to Payroll</a>
                 </div>
             </div>
         </div>
@@ -62,10 +62,9 @@
                         <div class="col-md-6">
                             <h6>Quick Actions</h6>
                             <div class="list-group">
-                                <a href="#" class="list-group-item list-group-item-action">Add New Employee</a>
-                                <a href="#" class="list-group-item list-group-item-action">Process Monthly Payroll</a>
-                                <a href="#" class="list-group-item list-group-item-action">Generate HR Reports</a>
-                                <a href="#" class="list-group-item list-group-item-action">Update HR Policies</a>
+                                <a href="/Employees" class="list-group-item list-group-item-action"><i class="fas fa-user-plus me-2"></i>Add New Employee</a>
+                                <a href="/Payrolls" class="list-group-item list-group-item-action"><i class="fas fa-money-bill-wave me-2"></i>Process Monthly Payroll</a>
+                                <a href="/Leaves" class="list-group-item list-group-item-action"><i class="fas fa-calendar-check me-2"></i>Manage Leave Requests</a>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -102,18 +101,12 @@
         async function loadHRStatistics() {
             try {
                 // Load employee count
-                const employeesResponse = await fetch('/api/Employees');
-                if (employeesResponse.ok) {
-                    const employees = await employeesResponse.json();
-                    $('#total-employees').text(employees.length || 0);
-                }
+                const employees = await apiRequest('/api/Employees');
+                $('#total-employees').text(employees.length || 0);
 
                 // Load pending leaves count
-                const leavesResponse = await fetch('/api/Leaves/pending');
-                if (leavesResponse.ok) {
-                    const pendingLeaves = await leavesResponse.json();
-                    $('#pending-leaves').text(pendingLeaves.length || 0);
-                }
+                const pendingLeaves = await apiRequest('/api/Leaves?status=Pending');
+                $('#pending-leaves').text(pendingLeaves.length || 0);
             } catch (error) {
                 console.error('Error loading HR statistics:', error);
             }

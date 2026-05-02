@@ -13,7 +13,6 @@ namespace Management.Models
         public DbSet<User> Users { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Holiday> Holidays { get; set; }
-        public DbSet<Management.Models.HR> HRs { get; set; }
         public DbSet<Leave> Leaves { get; set; }
         public DbSet<Payroll> Payrolls { get; set; }
         public DbSet<Role> Roles { get; set; }

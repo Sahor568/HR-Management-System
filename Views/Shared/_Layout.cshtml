@@ -426,6 +426,46 @@
             color: var(--text-dark);
         }
 
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content-custom {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         /* Responsive */
         @@media (max-width: 768px) {
             .sidebar {
@@ -494,6 +534,11 @@
                                     <i class="fas fa-sitemap"></i> Departments
                                 </a>
                             </li>
+                            <li>
+                                <a class="nav-link" asp-controller="Supervisor" asp-action="Index">
+                                    <i class="fas fa-user-tie"></i> Supervisor
+                                </a>
+                            </li>
                         }
 
                         <div class="nav-section-title">HR Operations</div>
@@ -523,34 +568,41 @@
                             </li>
                         }
 
-                        <div class="nav-section-title">Admin Panel</div>
-
                         @if (User.IsInRole("Admin"))
                         {
+                            <div class="nav-section-title">Administration</div>
                             <li>
                                 <a class="nav-link" asp-controller="Users" asp-action="Index">
-                                    <i class="fas fa-id-card"></i> Users
+                                    <i class="fas fa-id-card"></i> User Management
                                 </a>
                             </li>
                             <li>
                                 <a class="nav-link" asp-controller="Roles" asp-action="Index">
-                                    <i class="fas fa-shield-alt"></i> Roles
+                                    <i class="fas fa-shield-alt"></i> Access Control
                                 </a>
                             </li>
-                            <li>
-                                <a class="nav-link" asp-controller="Reports" asp-action="Index">
-                                    <i class="fas fa-file-pdf"></i> Reports
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" asp-controller="Logs" asp-action="Index">
-                                    <i class="fas fa-history"></i> System Logs
-                                </a>
-                            </li>
+                            @if (User.HasClaim("IsMainAdmin", "true"))
+                            {
+                                <li>
+                                    <a class="nav-link" asp-controller="Logs" asp-action="Index">
+                                        <i class="fas fa-history"></i> System Logs
+                                    </a>
+                                </li>
+                            }
                         }
 
                         <div class="nav-section-title">Account</div>
 
+                        <li>
+                            <a class="nav-link" asp-controller="Notifications" asp-action="Index">
+                                <i class="fas fa-bell"></i> Notifications
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" asp-controller="Home" asp-action="Profile">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                        </li>
                         <li>
                             <a class="nav-link" asp-controller="Home" asp-action="Settings">
                                 <i class="fas fa-cog"></i> Settings
@@ -565,13 +617,8 @@
                     else
                     {
                         <li>
-                            <a class="nav-link" asp-controller="Home" asp-action="Login">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">
                                 <i class="fas fa-sign-in-alt"></i> Login
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-controller="Home" asp-action="Register">
-                                <i class="fas fa-user-plus"></i> Register
                             </a>
                         </li>
                     }
@@ -589,12 +636,17 @@
                         <h5 style="margin: 0;">@ViewData["Title"]</h5>
                     </div>
                     <div class="topbar-right">
-                        <button class="btn btn-light" title="Notifications">
+                        <a href="/Notifications" class="btn btn-light position-relative" title="Notifications">
                             <i class="fas fa-bell"></i>
-                        </button>
+                            <span id="notification-count" class="notification-badge" style="display:none;">0</span>
+                        </a>
                         <div class="user-profile dropdown">
                             <div class="user-avatar" role="button" data-bs-toggle="dropdown">
-                                <span>@User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value?.Substring(0, 1).ToUpper()</span>
+                                <span>@(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value?.Substring(0, 1).ToUpper() ?? "U")</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;margin-left:4px;">
+                                <small style="font-weight:600;">@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "User")</small>
+                                <small style="color:var(--text-light);font-size:0.75rem;">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
                             </div>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" asp-controller="Home" asp-action="Profile"><i class="fas fa-user"></i> Profile</a></li>

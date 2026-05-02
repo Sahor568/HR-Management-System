@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.User>
-
 @{
     ViewData["Title"] = "Users Management";
 }
@@ -68,17 +66,17 @@
         font-weight: 600;
     }
 
-    .role-admin {
+    .role-Admin {
         background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%);
         color: #7f1d1d;
     }
 
-    .role-hr {
+    .role-HR {
         background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%);
         color: #065f46;
     }
 
-    .role-employee {
+    .role-Employee {
         background: linear-gradient(135deg, #2563eb15 0%, #0ea5e915 100%);
         color: #1e40af;
     }
@@ -94,27 +92,31 @@
         font-size: 0.85rem;
     }
 
-    .status-badge {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 0.5rem;
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
     }
 
-    .status-active {
-        background-color: var(--success-color);
+    .view-toggle button {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-color);
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
 
-    .status-inactive {
-        background-color: var(--danger-color);
+    .view-toggle button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
     }
 
     .user-card-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
-        margin-top: 2rem;
     }
 
     .user-card {
@@ -155,25 +157,64 @@
         font-size: 0.9rem;
     }
 
-    .view-toggle {
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
         display: flex;
+    }
+
+    .modal-dialog {
+        background: var(--white);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-body-custom {
+        padding: 1.5rem;
+    }
+
+    .modal-footer-custom {
+        display: flex;
+        justify-content: flex-end;
         gap: 0.5rem;
-        margin-bottom: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
     }
 
-    .view-toggle button {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--border-color);
-        background: white;
-        border-radius: 6px;
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        color: var(--text-light);
     }
 
-    .view-toggle button.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
+    .close-btn:hover {
+        color: var(--text-dark);
     }
 </style>
 
@@ -183,32 +224,29 @@
             <h1 class="page-title">Users Management</h1>
             <p class="page-subtitle">Manage system users and their roles</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openCreateModal()">
             <i class="fas fa-plus"></i> Add User
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- Search & Filters -->
 <div class="user-filter">
-    <input type="text" class="form-control" placeholder="Search by name or email...">
-    <select class="form-control" style="max-width: 150px;">
-        <option selected>All Roles</option>
-        <option>Admin</option>
-        <option>HR</option>
-        <option>Employee</option>
+    <input type="text" class="form-control" id="searchInput" placeholder="Search by email..." oninput="filterUsers()">
+    <select class="form-control" id="roleFilter" style="max-width: 150px;" onchange="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="Admin">Admin</option>
+        <option value="HR">HR</option>
+        <option value="Employee">Employee</option>
     </select>
-    <button class="btn btn-outline-primary">
-        <i class="fas fa-filter"></i> More Filters
-    </button>
 </div>
 
 <!-- View Toggle -->
 <div class="view-toggle">
-    <button class="active" data-view="table">
+    <button class="active" data-view="table" onclick="switchView('table')">
         <i class="fas fa-table"></i> Table View
     </button>
-    <button data-view="card">
+    <button data-view="card" onclick="switchView('card')">
         <i class="fas fa-th"></i> Card View
     </button>
 </div>
@@ -217,109 +255,15 @@
 <div id="table-view" class="card">
     <div class="card-body" style="padding: 1.5rem;">
         <div class="user-row" style="border-bottom: 2px solid var(--border-color); font-weight: 600; padding: 1rem 0; margin-bottom: 1rem;">
-            <div style="flex: 1;">Email Address</div>
+            <div style="flex: 1;">User</div>
             <div style="width: 120px;">Role</div>
-            <div style="width: 100px;">Status</div>
             <div style="width: 100px;">Actions</div>
         </div>
-
-        <div class="user-row">
-            <div class="user-info">
-                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">AD</div>
-                <div class="user-details">
-                    <h6>Admin User</h6>
-                    <p>admin@company.com</p>
+        <div id="user-table-body">
+            <div class="text-center" style="padding: 2rem;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            </div>
-            <div style="width: 120px;">
-                <span class="role-badge role-admin">Admin</span>
-            </div>
-            <div style="width: 100px;">
-                <span class="status-badge status-active"></span> Active
-            </div>
-            <div class="user-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
-            </div>
-        </div>
-
-        <div class="user-row">
-            <div class="user-info">
-                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
-                <div class="user-details">
-                    <h6>Sarah Miller</h6>
-                    <p>sarah@company.com</p>
-                </div>
-            </div>
-            <div style="width: 120px;">
-                <span class="role-badge role-hr">HR</span>
-            </div>
-            <div style="width: 100px;">
-                <span class="status-badge status-active"></span> Active
-            </div>
-            <div class="user-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
-            </div>
-        </div>
-
-        <div class="user-row">
-            <div class="user-info">
-                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
-                <div class="user-details">
-                    <h6>John Doe</h6>
-                    <p>john@company.com</p>
-                </div>
-            </div>
-            <div style="width: 120px;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="width: 100px;">
-                <span class="status-badge status-active"></span> Active
-            </div>
-            <div class="user-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
-            </div>
-        </div>
-
-        <div class="user-row">
-            <div class="user-info">
-                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
-                <div class="user-details">
-                    <h6>Mike Brown</h6>
-                    <p>mike@company.com</p>
-                </div>
-            </div>
-            <div style="width: 120px;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="width: 100px;">
-                <span class="status-badge status-active"></span> Active
-            </div>
-            <div class="user-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
-            </div>
-        </div>
-
-        <div class="user-row">
-            <div class="user-info">
-                <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
-                <div class="user-details">
-                    <h6>Emma Johnson</h6>
-                    <p>emma@company.com</p>
-                </div>
-            </div>
-            <div style="width: 120px;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="width: 100px;">
-                <span class="status-badge status-inactive"></span> Inactive
-            </div>
-            <div class="user-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                <button class="btn btn-sm btn-outline-success">Activate</button>
             </div>
         </div>
     </div>
@@ -327,84 +271,283 @@
 
 <!-- Card View -->
 <div id="card-view" style="display: none;">
-    <div class="user-card-grid">
-        <div class="user-card">
-            <div class="user-card-avatar" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">AD</div>
-            <h5>Admin User</h5>
-            <p>admin@company.com</p>
-            <div style="margin: 1rem 0;">
-                <span class="role-badge role-admin">Admin</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
+    <div id="user-card-grid" class="user-card-grid">
+        <div class="text-center" style="padding: 2rem; grid-column: 1 / -1;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="user-card">
-            <div class="user-card-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
-            <h5>Sarah Miller</h5>
-            <p>sarah@company.com</p>
-            <div style="margin: 1rem 0;">
-                <span class="role-badge role-hr">HR</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
-            </div>
+<!-- Create/Edit User Modal -->
+<div class="modal-overlay" id="userModal">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5 id="userModalTitle">Add User</h5>
+            <button class="close-btn" onclick="closeModal('userModal')">&times;</button>
         </div>
-
-        <div class="user-card">
-            <div class="user-card-avatar" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
-            <h5>John Doe</h5>
-            <p>john@company.com</p>
-            <div style="margin: 1rem 0;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
-            </div>
+        <div class="modal-body-custom">
+            <form id="userForm">
+                <input type="hidden" id="userId" />
+                <div class="mb-3">
+                    <label for="userEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="userEmail" required placeholder="user@example.com" />
+                </div>
+                <div class="mb-3" id="passwordGroup">
+                    <label for="userPassword" class="form-label">Password <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="userPassword" placeholder="Min 8 characters" />
+                    <div class="form-text">Minimum 8 characters with at least one number and one special character</div>
+                </div>
+                <div class="mb-3">
+                    <label for="userRole" class="form-label">Role <span class="text-danger">*</span></label>
+                    <select class="form-select" id="userRole" required>
+                        <option value="">Select Role...</option>
+                        <option value="Admin">Admin</option>
+                        <option value="HR">HR</option>
+                        <option value="Employee">Employee</option>
+                    </select>
+                </div>
+            </form>
         </div>
-
-        <div class="user-card">
-            <div class="user-card-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
-            <h5>Mike Brown</h5>
-            <p>mike@company.com</p>
-            <div style="margin: 1rem 0;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-danger w-100">Deactivate</button>
-            </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('userModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveUser()">
+                <i class="fas fa-save"></i> Save User
+            </button>
         </div>
+    </div>
+</div>
 
-        <div class="user-card">
-            <div class="user-card-avatar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
-            <h5>Emma Johnson</h5>
-            <p>emma@company.com</p>
-            <div style="margin: 1rem 0;">
-                <span class="role-badge role-employee">Employee</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <a href="#" class="btn btn-sm btn-outline-primary w-100">Edit</a>
-                <button class="btn btn-sm btn-outline-success w-100">Activate</button>
-            </div>
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+        <div class="modal-header-custom">
+            <h5>Confirm Delete</h5>
+            <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
+            <p class="text-muted">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const view = this.dataset.view;
-                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+        let allUsers = [];
+        let deleteId = null;
 
-                document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
-                document.getElementById('card-view').style.display = view === 'card' ? 'block' : 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+        });
+
+        async function loadUsers() {
+            try {
+                allUsers = await UsersAPI.getAll();
+                filterUsers();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('user-table-body').innerHTML = '<div class="text-center text-danger" style="padding:2rem;">Failed to load users.</div>';
+            }
+        }
+
+        function filterUsers() {
+            const search = (document.getElementById('searchInput').value || '').toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            let filtered = allUsers;
+            if (search) {
+                filtered = filtered.filter(u => (u.email || '').toLowerCase().includes(search));
+            }
+            if (roleFilter) {
+                filtered = filtered.filter(u => u.role === roleFilter);
+            }
+
+            renderTableView(filtered);
+            renderCardView(filtered);
+        }
+
+        function getAvatarGradient(role) {
+            switch (role) {
+                case 'Admin': return 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                case 'HR': return 'linear-gradient(135deg, #10b981 0%, #059e0a 100%)';
+                case 'Employee': return 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)';
+                default: return 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)';
+            }
+        }
+
+        function renderTableView(users) {
+            const container = document.getElementById('user-table-body');
+
+            if (users.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted" style="padding:2rem;">No users found.</div>';
+                return;
+            }
+
+            container.innerHTML = users.map(u => {
+                const initials = getInitials(u.email);
+                const gradient = getAvatarGradient(u.role);
+                return `
+                    <div class="user-row">
+                        <div class="user-info">
+                            <div class="user-avatar" style="width:40px;height:40px;background:${gradient};font-size:0.9rem;">${initials}</div>
+                            <div class="user-details">
+                                <h6>${escapeHtml(u.email)}</h6>
+                                <p>ID: ${u.id}</p>
+                            </div>
+                        </div>
+                        <div style="width:120px;">
+                            <span class="role-badge role-${u.role || 'Employee'}">${u.role || 'Employee'}</span>
+                        </div>
+                        <div class="user-actions" style="width:100px;">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${u.id})">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${u.id}, '${escapeHtml(u.email)}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCardView(users) {
+            const container = document.getElementById('user-card-grid');
+
+            if (users.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted" style="grid-column:1/-1;padding:2rem;">No users found.</div>';
+                return;
+            }
+
+            container.innerHTML = users.map(u => {
+                const initials = getInitials(u.email);
+                const gradient = getAvatarGradient(u.role);
+                return `
+                    <div class="user-card">
+                        <div class="user-card-avatar" style="background:${gradient};">${initials}</div>
+                        <h5>${escapeHtml(u.email)}</h5>
+                        <p>ID: ${u.id}</p>
+                        <div style="margin:1rem 0;">
+                            <span class="role-badge role-${u.role || 'Employee'}">${u.role || 'Employee'}</span>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+                            <button class="btn btn-sm btn-outline-primary w-100" onclick="openEditModal(${u.id})">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger w-100" onclick="openDeleteModal(${u.id}, '${escapeHtml(u.email)}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.view-toggle button[data-view="${view}"]`).classList.add('active');
+            document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
+            document.getElementById('card-view').style.display = view === 'card' ? 'block' : 'none';
+        }
+
+        function openCreateModal() {
+            document.getElementById('userModalTitle').textContent = 'Add User';
+            document.getElementById('userId').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userRole').value = '';
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('userPassword').required = true;
+            document.getElementById('userEmail').readOnly = false;
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        async function openEditModal(id) {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+
+            document.getElementById('userModalTitle').textContent = 'Edit User';
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userEmail').value = user.email || '';
+            document.getElementById('userEmail').readOnly = true;
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').required = false;
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('userRole').value = user.role || '';
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        async function saveUser() {
+            const id = document.getElementById('userId').value;
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const role = document.getElementById('userRole').value;
+
+            if (!email || !role) {
+                showNotification('Validation Error', 'Please fill in all required fields.', 'danger');
+                return;
+            }
+
+            if (!id && !password) {
+                showNotification('Validation Error', 'Password is required for new users.', 'danger');
+                return;
+            }
+
+            try {
+                if (id) {
+                    const data = { email, role };
+                    if (password) data.password = password;
+                    await UsersAPI.update(id, data);
+                    showNotification('Success', 'User updated successfully!', 'success');
+                } else {
+                    await UsersAPI.create({ email, password, role });
+                    showNotification('Success', 'User created successfully!', 'success');
+                }
+                closeModal('userModal');
+                loadUsers();
+            } catch (error) {
+                console.error('Error saving user:', error);
+                showNotification('Error', 'Failed to save user: ' + (error.message || 'Unknown error'), 'danger');
+            }
+        }
+
+        function openDeleteModal(id, email) {
+            deleteId = id;
+            document.getElementById('deleteUserName').textContent = email;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        async function confirmDelete() {
+            if (!deleteId) return;
+            try {
+                await UsersAPI.delete(deleteId);
+                showNotification('Success', 'User deleted successfully!', 'success');
+                closeModal('deleteModal');
+                deleteId = null;
+                loadUsers();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showNotification('Error', 'Failed to delete user: ' + (error.message || 'Unknown error'), 'danger');
+                closeModal('deleteModal');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
             });
         });
     </script>

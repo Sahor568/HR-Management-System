@@ -1,0 +1,370 @@
+@{
+    ViewData["Title"] = "Supervisor Management";
+}
+
+<style>
+    .org-chart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 2rem;
+    }
+    
+    .org-level {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 3rem;
+        width: 100%;
+    }
+    
+    .org-node {
+        background: white;
+        border: 2px solid #2563eb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        min-width: 220px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .org-node:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+    }
+    
+    .node-connector {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 20px;
+        background: #2563eb;
+    }
+    
+    .node-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #1e40af;
+    }
+    
+    .node-position {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .node-department {
+        display: inline-block;
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .node-subordinates {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+    
+    .hierarchy-container {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .hierarchy-sidebar {
+        flex: 1;
+        max-width: 300px;
+    }
+    
+    .hierarchy-main {
+        flex: 3;
+    }
+    
+    .employee-list {
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+    
+    .employee-item {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .employee-item:hover {
+        background: #f3f4f6;
+    }
+    
+    .employee-item.active {
+        background: #dbeafe;
+        border-left: 4px solid #2563eb;
+    }
+    
+    .search-box {
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Supervisor Management</h1>
+            <p class="page-subtitle">View organizational hierarchy and supervisor relationships</p>
+        </div>
+        <div>
+            <a href="/Supervisor/Hierarchy" class="btn btn-primary">
+                <i class="fas fa-sitemap"></i> Full Organizational Chart
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="hierarchy-container">
+    <div class="hierarchy-sidebar">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">My Supervisor Chain</h5>
+                <div id="myChain" class="mt-3">
+                    <div class="text-center text-muted py-3">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Search Employees</h5>
+                <div class="search-box">
+                    <input type="text" class="form-control" id="searchEmployee" placeholder="Search by name...">
+                </div>
+                <div class="employee-list" id="employeeList">
+                    <div class="text-center text-muted py-3">Loading employees...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="hierarchy-main">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Organizational Hierarchy</h5>
+                <p class="text-muted">Visual representation of reporting structure</p>
+                <div id="orgChart" class="org-chart">
+                    <div class="text-center text-muted py-5">Loading organizational chart...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allEmployees = [];
+        
+        // Load my supervisor chain
+        async function loadMyChain() {
+            try {
+                const data = await SupervisorAPI.getMyChain();
+                const container = document.getElementById('myChain');
+                
+                if (data.supervisorChain.length === 0) {
+                    container.innerHTML = `
+                        <div class="alert alert-info">
+                            <p class="mb-1"><strong>${data.employee.fullName}</strong> (${data.employee.position})</p>
+                            <small class="text-muted">No supervisor assigned</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <div class="alert alert-light mb-2">
+                        <p class="mb-1"><strong>${data.employee.fullName}</strong></p>
+                        <small class="text-muted">${data.employee.position} • ${data.employee.department}</small>
+                    </div>
+                `;
+                
+                data.supervisorChain.forEach((supervisor, index) => {
+                    html += `
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-2" style="font-size: 0.8rem; color: #6b7280;">Level ${supervisor.level}</div>
+                            <div class="flex-grow-1">
+                                <div class="alert alert-light mb-0 py-2">
+                                    <p class="mb-1"><strong>${supervisor.name}</strong></p>
+                                    <small class="text-muted">${supervisor.position} • ${supervisor.department}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (e) {
+                let errorMsg = 'Unable to load supervisor chain.';
+                if (e.message && e.message.includes('404')) {
+                    errorMsg = 'No employee record found for your account. Please contact HR to create your employee profile.';
+                } else if (e.message && e.message.includes('401')) {
+                    errorMsg = 'Authentication required. Please log in again.';
+                } else if (e.message) {
+                    errorMsg = 'Failed to load supervisor chain: ' + e.message;
+                }
+                document.getElementById('myChain').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        ${errorMsg}
+                    </div>
+                `;
+            }
+        }
+        
+        // Load organizational hierarchy
+        async function loadHierarchy() {
+            try {
+                const data = await SupervisorAPI.getHierarchy();
+                allEmployees = data.employees;
+                renderEmployeeList(allEmployees);
+                
+                // For now, show a simplified hierarchy
+                const orgChart = document.getElementById('orgChart');
+                if (data.employees.length === 0) {
+                    orgChart.innerHTML = '<div class="alert alert-info">No employees found in the system</div>';
+                    return;
+                }
+                
+                // Show top-level employees (those without supervisors)
+                const topLevel = data.employees.filter(emp => !emp.supervisorId || emp.supervisorId === 0);
+                
+                let html = '<div class="org-level">';
+                topLevel.forEach(emp => {
+                    html += `
+                        <div class="org-node">
+                            <div class="node-name">${emp.fullName}</div>
+                            <div class="node-position">${emp.position}</div>
+                            <div class="node-department">${emp.department ? emp.department.name : 'N/A'}</div>
+                            ${emp.subordinateCount > 0 ? `<div class="node-subordinates"><i class="fas fa-users me-1"></i> ${emp.subordinateCount} subordinates</div>` : ''}
+                            <div class="node-connector"></div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                orgChart.innerHTML = html;
+            } catch (e) {
+                document.getElementById('orgChart').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Failed to load organizational hierarchy
+                    </div>
+                `;
+            }
+        }
+        
+        // Render employee list
+        function renderEmployeeList(employees) {
+            const container = document.getElementById('employeeList');
+            if (!employees || employees.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-3">No employees found</div>';
+                return;
+            }
+            
+            container.innerHTML = employees.map(emp => `
+                <div class="employee-item" data-id="${emp.id}" onclick="selectEmployee(${emp.id})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-semibold">${emp.fullName}</div>
+                            <small class="text-muted">${emp.position}</small>
+                        </div>
+                        ${emp.supervisorName ? `<small><i class="fas fa-user-tie me-1"></i> ${emp.supervisorName}</small>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Select employee
+        function selectEmployee(id) {
+            // Remove active class from all items
+            document.querySelectorAll('.employee-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected item
+            const selectedItem = document.querySelector(`.employee-item[data-id="${id}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('active');
+            }
+            
+            // Load subordinates for this employee
+            loadSubordinates(id);
+        }
+        
+        // Load subordinates for a supervisor
+        async function loadSubordinates(supervisorId) {
+            try {
+                const subordinates = await SupervisorAPI.getSubordinates(supervisorId);
+                const orgChart = document.getElementById('orgChart');
+                
+                if (subordinates.length === 0) {
+                    orgChart.innerHTML = `
+                        <div class="alert alert-info">
+                            This employee has no direct subordinates
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '<div class="org-level">';
+                subordinates.forEach(emp => {
+                    html += `
+                        <div class="org-node">
+                            <div class="node-name">${emp.fullName}</div>
+                            <div class="node-position">${emp.position}</div>
+                            <div class="node-department">${emp.department}</div>
+                            <div class="node-subordinates">
+                                <i class="fas fa-users me-1"></i> ${emp.subordinateCount || 0} subordinates
+                            </div>
+                            <div class="node-connector"></div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                orgChart.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load subordinates:', e);
+            }
+        }
+        
+        // Search employees
+        document.getElementById('searchEmployee').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (!searchTerm) {
+                renderEmployeeList(allEmployees);
+                return;
+            }
+            
+            const filtered = allEmployees.filter(emp => 
+                emp.fullName.toLowerCase().includes(searchTerm) ||
+                (emp.position && emp.position.toLowerCase().includes(searchTerm)) ||
+                (emp.department && emp.department.name && emp.department.name.toLowerCase().includes(searchTerm))
+            );
+            
+            renderEmployeeList(filtered);
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMyChain();
+            loadHierarchy();
+        });
+    </script>
+}

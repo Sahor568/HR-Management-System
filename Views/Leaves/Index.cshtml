@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Leave>
-
 @{
     ViewData["Title"] = "Leave Requests";
 }
@@ -84,16 +82,8 @@
         font-size: 1.2rem;
     }
 
-    .leave-info h5 {
-        margin: 0;
-        color: var(--text-dark);
-    }
-
-    .leave-info p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: var(--text-light);
-    }
+    .leave-info h5 { margin: 0; color: var(--text-dark); }
+    .leave-info p { margin: 0; font-size: 0.9rem; color: var(--text-light); }
 
     .leave-dates {
         display: grid;
@@ -133,9 +123,7 @@
         line-height: 1.5;
     }
 
-    .tabs-container {
-        margin-bottom: 2rem;
-    }
+    .tabs-container { margin-bottom: 2rem; }
 
     .nav-tabs {
         border-bottom: 2px solid var(--border-color);
@@ -151,14 +139,52 @@
         cursor: pointer;
     }
 
-    .nav-tabs .nav-link:hover {
-        color: var(--primary-color);
-    }
+    .nav-tabs .nav-link:hover { color: var(--primary-color); }
 
     .nav-tabs .nav-link.active {
         color: var(--primary-color);
         border-bottom-color: var(--primary-color);
         background: transparent;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body { padding: 1.5rem; }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
     }
 </style>
 
@@ -168,9 +194,9 @@
             <h1 class="page-title">Leave Requests</h1>
             <p class="page-subtitle">Manage and track employee leave requests</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openAddLeaveModal()">
             <i class="fas fa-plus"></i> New Leave Request
-        </a>
+        </button>
     </div>
 </div>
 
@@ -182,37 +208,34 @@
         </div>
         <div class="leave-stat-content">
             <h6>Approved</h6>
-            <div class="value">32</div>
+            <div class="value" id="stat-approved">--</div>
         </div>
     </div>
-
     <div class="leave-stat-card">
         <div class="leave-stat-icon" style="background: linear-gradient(135deg, #f59e0b15 0%, #d9790015 100%); color: var(--warning-color);">
             <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="leave-stat-content">
             <h6>Pending</h6>
-            <div class="value">8</div>
+            <div class="value" id="stat-pending">--</div>
         </div>
     </div>
-
     <div class="leave-stat-card">
         <div class="leave-stat-icon" style="background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); color: var(--danger-color);">
             <i class="fas fa-times-circle"></i>
         </div>
         <div class="leave-stat-content">
             <h6>Rejected</h6>
-            <div class="value">2</div>
+            <div class="value" id="stat-rejected">--</div>
         </div>
     </div>
-
     <div class="leave-stat-card">
         <div class="leave-stat-icon" style="background: linear-gradient(135deg, #2563eb15 0%, #0ea5e915 100%); color: var(--primary-color);">
             <i class="fas fa-calendar-alt"></i>
         </div>
         <div class="leave-stat-content">
-            <h6>This Month</h6>
-            <div class="value">15</div>
+            <h6>Total</h6>
+            <div class="value" id="stat-total">--</div>
         </div>
     </div>
 </div>
@@ -221,208 +244,270 @@
 <div class="tabs-container">
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" href="#all" data-bs-toggle="tab">All Requests</a>
+            <a class="nav-link active" onclick="filterLeaves('all')" style="cursor:pointer;">All Requests</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#pending" data-bs-toggle="tab">Pending (8)</a>
+            <a class="nav-link" onclick="filterLeaves('Pending')" style="cursor:pointer;">Pending (<span id="tab-pending">0</span>)</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#approved" data-bs-toggle="tab">Approved (32)</a>
+            <a class="nav-link" onclick="filterLeaves('Approved')" style="cursor:pointer;">Approved (<span id="tab-approved">0</span>)</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#rejected" data-bs-toggle="tab">Rejected (2)</a>
+            <a class="nav-link" onclick="filterLeaves('Rejected')" style="cursor:pointer;">Rejected (<span id="tab-rejected">0</span>)</a>
         </li>
     </ul>
 
-    <div class="tab-content">
-        <!-- All Requests -->
-        <div class="tab-pane fade show active" id="all">
-            <!-- Leave Request 1 - Pending -->
-            <div class="leave-request-card">
-                <div class="leave-header">
-                    <div class="leave-employee">
-                        <div class="leave-avatar" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
-                        <div class="leave-info">
-                            <h5>John Doe</h5>
-                            <p>IT Department - Senior Developer</p>
-                        </div>
-                    </div>
-                    <span class="badge badge-warning">Pending</span>
-                </div>
+    <div id="leaves-container">
+        <div style="text-align:center;padding:3rem;color:var(--text-light);">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p style="margin-top:1rem;">Loading leave requests...</p>
+        </div>
+    </div>
+</div>
 
-                <div class="leave-reason">
-                    <strong>Reason:</strong> Summer Vacation
-                </div>
-
-                <div class="leave-dates">
-                    <div class="date-item">
-                        <label>From Date</label>
-                        <div class="value">May 20, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>To Date</label>
-                        <div class="value">May 27, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>Days</label>
-                        <div class="value">6 Days</div>
-                    </div>
-                </div>
-
-                <div class="leave-actions">
-                    <button class="btn btn-sm btn-success">
-                        <i class="fas fa-check"></i> Approve
-                    </button>
-                    <button class="btn btn-sm btn-danger">
-                        <i class="fas fa-times"></i> Reject
-                    </button>
-                    <a href="#" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye"></i> Details
-                    </a>
-                </div>
+<!-- Add Leave Request Modal -->
+<div class="modal-overlay" id="leaveModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h5 style="margin:0;">New Leave Request</h5>
+            <button onclick="closeLeaveModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom:1rem;" id="employee-select-group">
+                <label>Employee <span style="color:red;">*</span></label>
+                <select class="form-control" id="leaveEmployeeId">
+                    <option value="">Select Employee</option>
+                </select>
             </div>
-
-            <!-- Leave Request 2 - Pending -->
-            <div class="leave-request-card">
-                <div class="leave-header">
-                    <div class="leave-employee">
-                        <div class="leave-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
-                        <div class="leave-info">
-                            <h5>Sarah Miller</h5>
-                            <p>HR Department - HR Manager</p>
-                        </div>
-                    </div>
-                    <span class="badge badge-warning">Pending</span>
-                </div>
-
-                <div class="leave-reason">
-                    <strong>Reason:</strong> Medical/Sick Leave
-                </div>
-
-                <div class="leave-dates">
-                    <div class="date-item">
-                        <label>From Date</label>
-                        <div class="value">May 10, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>To Date</label>
-                        <div class="value">May 12, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>Days</label>
-                        <div class="value">2 Days</div>
-                    </div>
-                </div>
-
-                <div class="leave-actions">
-                    <button class="btn btn-sm btn-success">
-                        <i class="fas fa-check"></i> Approve
-                    </button>
-                    <button class="btn btn-sm btn-danger">
-                        <i class="fas fa-times"></i> Reject
-                    </button>
-                    <a href="#" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye"></i> Details
-                    </a>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>From Date <span style="color:red;">*</span></label>
+                <input type="date" class="form-control" id="leaveFromDate" required>
             </div>
-
-            <!-- Leave Request 3 - Approved -->
-            <div class="leave-request-card">
-                <div class="leave-header">
-                    <div class="leave-employee">
-                        <div class="leave-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
-                        <div class="leave-info">
-                            <h5>Mike Brown</h5>
-                            <p>Finance Department - Financial Analyst</p>
-                        </div>
-                    </div>
-                    <span class="badge badge-success">Approved</span>
-                </div>
-
-                <div class="leave-reason">
-                    <strong>Reason:</strong> Personal Business
-                </div>
-
-                <div class="leave-dates">
-                    <div class="date-item">
-                        <label>From Date</label>
-                        <div class="value">May 5, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>To Date</label>
-                        <div class="value">May 8, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>Days</label>
-                        <div class="value">3 Days</div>
-                    </div>
-                </div>
-
-                <div class="leave-actions">
-                    <a href="#" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye"></i> Details
-                    </a>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>To Date <span style="color:red;">*</span></label>
+                <input type="date" class="form-control" id="leaveToDate" required>
             </div>
-
-            <!-- Leave Request 4 - Approved -->
-            <div class="leave-request-card">
-                <div class="leave-header">
-                    <div class="leave-employee">
-                        <div class="leave-avatar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">EJ</div>
-                        <div class="leave-info">
-                            <h5>Emma Johnson</h5>
-                            <p>Operations Department - Coordinator</p>
-                        </div>
-                    </div>
-                    <span class="badge badge-success">Approved</span>
-                </div>
-
-                <div class="leave-reason">
-                    <strong>Reason:</strong> Maternity Leave
-                </div>
-
-                <div class="leave-dates">
-                    <div class="date-item">
-                        <label>From Date</label>
-                        <div class="value">April 15, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>To Date</label>
-                        <div class="value">June 30, 2026</div>
-                    </div>
-                    <div class="date-item">
-                        <label>Days</label>
-                        <div class="value">76 Days</div>
-                    </div>
-                </div>
-
-                <div class="leave-actions">
-                    <a href="#" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-eye"></i> Details
-                    </a>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Reason <span style="color:red;">*</span></label>
+                <textarea class="form-control" id="leaveReason" rows="3" placeholder="Enter reason for leave" required></textarea>
             </div>
         </div>
-
-        <!-- Pending Tab -->
-        <div class="tab-pane fade" id="pending">
-            <p style="padding: 2rem; text-align: center; color: var(--text-light);">The pending leave requests are shown in the "All Requests" tab above.</p>
-        </div>
-
-        <!-- Approved Tab -->
-        <div class="tab-pane fade" id="approved">
-            <p style="padding: 2rem; text-align: center; color: var(--text-light);">The approved leave requests are shown in the "All Requests" tab above.</p>
-        </div>
-
-        <!-- Rejected Tab -->
-        <div class="tab-pane fade" id="rejected">
-            <p style="padding: 2rem; text-align: center; color: var(--text-light);">No rejected leave requests.</p>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" onclick="closeLeaveModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitLeave()">Submit Request</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allLeaves = [];
+        let currentFilter = 'all';
+        let employees = [];
+
+        const avatarColors = [
+            'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
+            'linear-gradient(135deg, #10b981 0%, #059e0a 100%)',
+            'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+            'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)'
+        ];
+
+        function getAvatarColor(id) {
+            return avatarColors[(id || 0) % avatarColors.length];
+        }
+
+        async function loadLeaves() {
+            try {
+                if (isAdminOrHR()) {
+                    allLeaves = await LeavesAPI.getAll();
+                } else {
+                    allLeaves = await LeavesAPI.getMyLeaves();
+                }
+                updateStats();
+                renderLeaves();
+            } catch (e) {
+                document.getElementById('leaves-container').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);"><i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Failed to load leave requests</div>';
+            }
+        }
+
+        async function loadEmployees() {
+            try {
+                employees = await EmployeesAPI.getAll();
+                populateEmployeeDropdown();
+            } catch (e) {
+                console.error('Failed to load employees', e);
+            }
+        }
+
+        function populateEmployeeDropdown() {
+            const select = document.getElementById('leaveEmployeeId');
+            select.innerHTML = '<option value="">Select Employee</option>';
+            employees.forEach(emp => {
+                select.innerHTML += `<option value="${emp.id}">${emp.fullName} - ${emp.department?.name || 'N/A'}</option>`;
+            });
+
+            // If employee, auto-select and hide dropdown
+            if (isEmployee()) {
+                const myEmpId = getUserEmployeeId();
+                if (myEmpId) {
+                    select.value = myEmpId;
+                    document.getElementById('employee-select-group').style.display = 'none';
+                }
+            }
+        }
+
+        function updateStats() {
+            const approved = allLeaves.filter(l => l.status === 'Approved').length;
+            const pending = allLeaves.filter(l => l.status === 'Pending').length;
+            const rejected = allLeaves.filter(l => l.status === 'Rejected').length;
+
+            document.getElementById('stat-approved').textContent = approved;
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-rejected').textContent = rejected;
+            document.getElementById('stat-total').textContent = allLeaves.length;
+            document.getElementById('tab-pending').textContent = pending;
+            document.getElementById('tab-approved').textContent = approved;
+            document.getElementById('tab-rejected').textContent = rejected;
+        }
+
+        function filterLeaves(status) {
+            currentFilter = status;
+            document.querySelectorAll('.nav-tabs .nav-link').forEach(l => l.classList.remove('active'));
+            event.target.classList.add('active');
+            renderLeaves();
+        }
+
+        function renderLeaves() {
+            const container = document.getElementById('leaves-container');
+            let filtered = currentFilter === 'all' ? allLeaves : allLeaves.filter(l => l.status === currentFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);"><i class="fas fa-calendar-times" style="font-size:3rem;margin-bottom:1rem;display:block;"></i><h4>No Leave Requests Found</h4><p>There are no leave requests matching this filter.</p></div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(leave => {
+                const empName = leave.employee?.fullName || 'Unknown';
+                const dept = leave.employee?.department?.name || 'N/A';
+                const initials = getInitials(empName);
+                const color = getAvatarColor(leave.employeeId);
+                const days = Math.ceil((new Date(leave.toDate) - new Date(leave.fromDate)) / (1000 * 60 * 60 * 24)) + 1;
+                const badgeClass = getStatusBadgeClass(leave.status);
+                const canApprove = isAdminOrHR() && leave.status === 'Pending';
+
+                return `
+                <div class="leave-request-card">
+                    <div class="leave-header">
+                        <div class="leave-employee">
+                            <div class="leave-avatar" style="background: ${color};">${initials}</div>
+                            <div class="leave-info">
+                                <h5>${empName}</h5>
+                                <p>${dept}</p>
+                            </div>
+                        </div>
+                        <span class="badge ${badgeClass}">${leave.status}</span>
+                    </div>
+                    <div class="leave-reason">
+                        <strong>Reason:</strong> ${leave.reason || 'No reason provided'}
+                    </div>
+                    <div class="leave-dates">
+                        <div class="date-item">
+                            <label>From Date</label>
+                            <div class="value">${formatDate(leave.fromDate)}</div>
+                        </div>
+                        <div class="date-item">
+                            <label>To Date</label>
+                            <div class="value">${formatDate(leave.toDate)}</div>
+                        </div>
+                        <div class="date-item">
+                            <label>Days</label>
+                            <div class="value">${days} Day${days !== 1 ? 's' : ''}</div>
+                        </div>
+                    </div>
+                    ${canApprove ? `
+                    <div class="leave-actions">
+                        <button class="btn btn-sm btn-success" onclick="approveLeave(${leave.id})">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="rejectLeave(${leave.id})">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>` : ''}
+                    ${leave.approvedAt ? `<div style="font-size:0.85rem;color:var(--text-light);margin-top:0.5rem;"><i class="fas fa-info-circle"></i> Processed on ${formatDate(leave.approvedAt)}${leave.approvalRemarks ? ' - ' + leave.approvalRemarks : ''}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function openAddLeaveModal() {
+            document.getElementById('leaveFromDate').value = '';
+            document.getElementById('leaveToDate').value = '';
+            document.getElementById('leaveReason').value = '';
+            if (!isEmployee()) {
+                document.getElementById('leaveEmployeeId').value = '';
+            }
+            document.getElementById('leaveModal').classList.add('active');
+        }
+
+        function closeLeaveModal() {
+            document.getElementById('leaveModal').classList.remove('active');
+        }
+
+        async function submitLeave() {
+            const employeeId = isEmployee() ? getUserEmployeeId() : document.getElementById('leaveEmployeeId').value;
+            const fromDate = document.getElementById('leaveFromDate').value;
+            const toDate = document.getElementById('leaveToDate').value;
+            const reason = document.getElementById('leaveReason').value.trim();
+
+            if (!employeeId || !fromDate || !toDate || !reason) {
+                showNotification('Validation Error', 'All fields are required', 'danger');
+                return;
+            }
+
+            if (new Date(toDate) < new Date(fromDate)) {
+                showNotification('Validation Error', 'To Date must be after From Date', 'danger');
+                return;
+            }
+
+            try {
+                await LeavesAPI.create({
+                    employeeId: parseInt(employeeId),
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    reason: reason
+                });
+                showNotification('Success', 'Leave request submitted successfully', 'success');
+                closeLeaveModal();
+                await loadLeaves();
+            } catch (e) {
+                showNotification('Error', 'Failed to submit leave request: ' + e.message, 'danger');
+            }
+        }
+
+        async function approveLeave(id) {
+            try {
+                await LeavesAPI.approve(id);
+                showNotification('Success', 'Leave request approved', 'success');
+                await loadLeaves();
+            } catch (e) {
+                showNotification('Error', 'Failed to approve leave: ' + e.message, 'danger');
+            }
+        }
+
+        async function rejectLeave(id) {
+            try {
+                await LeavesAPI.reject(id);
+                showNotification('Success', 'Leave request rejected', 'success');
+                await loadLeaves();
+            } catch (e) {
+                showNotification('Error', 'Failed to reject leave: ' + e.message, 'danger');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEmployees();
+            await loadLeaves();
+        });
+    </script>
 }

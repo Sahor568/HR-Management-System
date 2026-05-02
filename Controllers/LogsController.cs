@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Management.Controllers
 {
+    [Authorize(Policy = "MainAdminOnly")]
     public class LogsController : Controller
     {
     private readonly ManagementContext _context;
@@ -86,6 +87,25 @@ namespace Management.Controllers
                 .ToListAsync();
 
             // Prepare view model
+            // Get distinct levels and log types from database
+            var distinctLevels = await _context.SystemLogs
+                .Select(l => l.Level)
+                .Distinct()
+                .ToListAsync();
+            
+            var distinctLogTypes = await _context.SystemLogs
+                .Select(l => l.LogType)
+                .Where(lt => lt != null)
+                .Distinct()
+                .ToListAsync();
+
+            // Add "All" option at the beginning
+            var allLevels = new List<string> { "All" };
+            allLevels.AddRange(distinctLevels.Where(l => !string.IsNullOrEmpty(l)));
+            
+            var allLogTypes = new List<string> { "All" };
+            allLogTypes.AddRange(distinctLogTypes.Where(lt => !string.IsNullOrEmpty(lt))!);
+
             var viewModel = new LogsViewModel
             {
                 Logs = logs,
@@ -100,8 +120,8 @@ namespace Management.Controllers
                 PageSize = pageSize,
                 TotalCount = totalCount,
                 TotalPages = totalPages,
-                Levels = new[] { "All", "Information", "Warning", "Error", "Debug" },
-                LogTypes = new[] { "All", "System", "Audit", "Security", "Performance" }
+                Levels = allLevels.ToArray(),
+                LogTypes = allLogTypes.ToArray()
             };
 
             return View(viewModel);
@@ -288,6 +308,117 @@ namespace Management.Controllers
                 logsToKeep,
                 logsToDelete,
                 oldestLogDate = oldestLog > DateTime.MinValue ? oldestLog : (DateTime?)null
+            });
+        }
+        // API Endpoints
+
+        // GET: api/Logs
+        [HttpGet("api/Logs")]
+        public async Task<ActionResult<object>> GetLogsApi(
+            [FromQuery] string? level = null,
+            [FromQuery] string? source = null,
+            [FromQuery] string? userName = null,
+            [FromQuery] string? search = null,
+            [FromQuery] DateTime? fromDate = null,
+            [FromQuery] DateTime? toDate = null,
+            [FromQuery] string? logType = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var query = _context.SystemLogs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(level) && level != "All")
+                query = query.Where(l => l.Level == level);
+
+            if (!string.IsNullOrEmpty(source))
+                query = query.Where(l => l.Source != null && l.Source.Contains(source));
+
+            if (!string.IsNullOrEmpty(userName))
+                query = query.Where(l => l.UserName != null && l.UserName.Contains(userName));
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(l =>
+                    l.Message.Contains(search) ||
+                    (l.Details != null && l.Details.Contains(search)) ||
+                    (l.Path != null && l.Path.Contains(search)));
+
+            if (fromDate.HasValue)
+                query = query.Where(l => l.CreatedAt >= fromDate.Value.ToUniversalTime());
+
+            if (toDate.HasValue)
+            {
+                var toDateEnd = toDate.Value.Date.AddDays(1).AddTicks(-1);
+                query = query.Where(l => l.CreatedAt <= toDateEnd.ToUniversalTime());
+            }
+
+            if (!string.IsNullOrEmpty(logType) && logType != "All")
+                query = query.Where(l => l.LogType == logType);
+
+            query = query.OrderByDescending(l => l.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var logs = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.Level,
+                    l.Message,
+                    l.Details,
+                    l.Source,
+                    l.Action,
+                    l.Path,
+                    l.UserName,
+                    l.IpAddress,
+                    l.StatusCode,
+                    l.DurationMs,
+                    l.LogType,
+                    l.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                totalCount,
+                page,
+                pageSize,
+                totalPages,
+                logs
+            });
+        }
+
+        // GET: api/Logs/GetStatistics
+        [HttpGet("api/Logs/GetStatistics")]
+        public async Task<ActionResult<object>> GetStatisticsApi()
+        {
+            var today = DateTime.UtcNow.Date;
+            var weekStart = today.AddDays(-(int)today.DayOfWeek);
+
+            var logsToday = await _context.SystemLogs
+                .Where(l => l.CreatedAt >= today)
+                .CountAsync();
+
+            var logsThisWeek = await _context.SystemLogs
+                .Where(l => l.CreatedAt >= weekStart)
+                .CountAsync();
+
+            var errorsToday = await _context.SystemLogs
+                .Where(l => l.CreatedAt >= today && l.Level == "Error")
+                .CountAsync();
+
+            var warningsToday = await _context.SystemLogs
+                .Where(l => l.CreatedAt >= today && l.Level == "Warning")
+                .CountAsync();
+
+            return Ok(new
+            {
+                logsToday,
+                logsThisWeek,
+                errorsToday,
+                warningsToday
             });
         }
     }

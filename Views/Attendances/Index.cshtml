@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Attendance>
-
 @{
     ViewData["Title"] = "Attendance Management";
 }
@@ -65,6 +63,12 @@
         min-width: 150px;
     }
 
+    .check-status {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
     .attendance-record {
         display: flex;
         justify-content: space-between;
@@ -94,6 +98,46 @@
         border-radius: 6px;
         font-size: 0.9rem;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body { padding: 1.5rem; }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
 </style>
 
 <div class="page-header">
@@ -102,64 +146,59 @@
             <h1 class="page-title">Attendance Management</h1>
             <p class="page-subtitle">Track and manage employee attendance</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openMarkAttendanceModal()" id="mark-attendance-btn" style="display:none;">
             <i class="fas fa-plus"></i> Mark Attendance
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- Check-In/Check-Out Area -->
-<div class="check-in-area">
-    <div class="check-in-time">Good Morning! Time to Check In</div>
-    <div class="time-display" id="currentTime">09:30:45</div>
+<div class="check-in-area" id="checkInArea" style="display: none;">
+    <div class="check-in-time" id="greeting">Good Morning! Time to Check In</div>
+    <div class="time-display" id="currentTime">00:00:00</div>
     <div class="check-btn-group">
-        <button class="btn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white;">
+        <button class="btn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white;" onclick="checkIn()" id="checkInBtn">
             <i class="fas fa-sign-in-alt"></i> Check In
         </button>
-        <button class="btn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white;">
+        <button class="btn" style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white;" onclick="checkOut()" id="checkOutBtn">
             <i class="fas fa-sign-out-alt"></i> Check Out
         </button>
     </div>
+    <div class="check-status" id="checkStatus"></div>
 </div>
 
 <!-- Attendance Statistics -->
 <div class="attendance-stats">
     <div class="stat-card">
         <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 1.5rem;"></i>
-        <div class="stat-number" style="color: var(--success-color);">142</div>
+        <div class="stat-number" style="color: var(--success-color);" id="stat-present">--</div>
         <div class="stat-label">Present Today</div>
     </div>
     <div class="stat-card">
         <i class="fas fa-times-circle" style="color: var(--danger-color); font-size: 1.5rem;"></i>
-        <div class="stat-number" style="color: var(--danger-color);">8</div>
+        <div class="stat-number" style="color: var(--danger-color);" id="stat-absent">--</div>
         <div class="stat-label">Absent Today</div>
     </div>
     <div class="stat-card">
         <i class="fas fa-clock" style="color: var(--warning-color); font-size: 1.5rem;"></i>
-        <div class="stat-number" style="color: var(--warning-color);">6</div>
+        <div class="stat-number" style="color: var(--warning-color);" id="stat-late">--</div>
         <div class="stat-label">Late Today</div>
     </div>
     <div class="stat-card">
         <i class="fas fa-percentage" style="color: var(--primary-color); font-size: 1.5rem;"></i>
-        <div class="stat-number" style="color: var(--primary-color);">94.6%</div>
-        <div class="stat-label">This Month Rate</div>
+        <div class="stat-number" style="color: var(--primary-color);" id="stat-rate">--</div>
+        <div class="stat-label">Attendance Rate</div>
     </div>
 </div>
 
 <!-- Filters -->
 <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-    <input type="date" class="form-control" style="max-width: 150px;">
-    <select class="form-control" style="max-width: 200px;">
-        <option selected>All Departments</option>
-        <option>IT</option>
-        <option>HR</option>
-        <option>Finance</option>
-    </select>
-    <select class="form-control" style="max-width: 150px;">
-        <option selected>All Status</option>
-        <option>Present</option>
-        <option>Absent</option>
-        <option>Late</option>
+    <input type="date" class="form-control" id="filterDate" style="max-width: 150px;">
+    <select class="form-control" id="filterStatus" style="max-width: 150px;" onchange="loadAttendance()">
+        <option value="">All Status</option>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+        <option value="Late">Late</option>
     </select>
 </div>
 
@@ -167,141 +206,87 @@
 <div class="card">
     <div class="card-header">
         <h5 style="margin: 0;">
-            <i class="fas fa-list"></i> Today's Attendance Records
+            <i class="fas fa-list"></i> Attendance Records
         </h5>
     </div>
     <div class="card-body" style="padding: 0;">
-        <div style="max-height: 600px; overflow-y: auto;">
-            <div class="attendance-record">
-                <div class="record-employee">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">JD</div>
-                        <div>
-                            <p style="margin: 0; font-weight: 600;">John Doe</p>
-                            <small style="color: var(--text-light);">IT Department</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="record-times">
-                    <div class="time-badge">
-                        <small>Check In</small><br>
-                        <strong>09:15 AM</strong>
-                    </div>
-                    <div class="time-badge">
-                        <small>Check Out</small><br>
-                        <strong>05:45 PM</strong>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <span class="badge badge-success">Present</span>
-                </div>
+        <div style="max-height: 600px; overflow-y: auto;" id="attendance-records">
+            <div style="text-align:center;padding:3rem;color:var(--text-light);">
+                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                <p style="margin-top:1rem;">Loading attendance records...</p>
             </div>
+        </div>
+    </div>
+</div>
 
-            <div class="attendance-record">
-                <div class="record-employee">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">SM</div>
-                        <div>
-                            <p style="margin: 0; font-weight: 600;">Sarah Miller</p>
-                            <small style="color: var(--text-light);">HR Department</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="record-times">
-                    <div class="time-badge">
-                        <small>Check In</small><br>
-                        <strong>09:32 AM</strong>
-                    </div>
-                    <div class="time-badge">
-                        <small>Check Out</small><br>
-                        <strong>06:00 PM</strong>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <span class="badge badge-warning">Late</span>
-                </div>
+<!-- Mark Attendance Modal (Admin/HR) -->
+<div class="modal-overlay" id="attendanceModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h5 style="margin:0;">Mark Attendance</h5>
+            <button onclick="closeAttendanceModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Employee <span style="color:red;">*</span></label>
+                <select class="form-control" id="attEmployeeId">
+                    <option value="">Select Employee</option>
+                </select>
             </div>
-
-            <div class="attendance-record">
-                <div class="record-employee">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">MB</div>
-                        <div>
-                            <p style="margin: 0; font-weight: 600;">Mike Brown</p>
-                            <small style="color: var(--text-light);">Finance Department</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="record-times">
-                    <div class="time-badge">
-                        <small>Check In</small><br>
-                        <strong>—</strong>
-                    </div>
-                    <div class="time-badge">
-                        <small>Check Out</small><br>
-                        <strong>—</strong>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <span class="badge badge-danger">Absent</span>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Date <span style="color:red;">*</span></label>
+                <input type="date" class="form-control" id="attDate">
             </div>
-
-            <div class="attendance-record">
-                <div class="record-employee">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">EJ</div>
-                        <div>
-                            <p style="margin: 0; font-weight: 600;">Emma Johnson</p>
-                            <small style="color: var(--text-light);">Operations</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="record-times">
-                    <div class="time-badge">
-                        <small>Check In</small><br>
-                        <strong>09:05 AM</strong>
-                    </div>
-                    <div class="time-badge">
-                        <small>Check Out</small><br>
-                        <strong>05:30 PM</strong>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <span class="badge badge-success">Present</span>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Status <span style="color:red;">*</span></label>
+                <select class="form-control" id="attStatus">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Late">Late</option>
+                </select>
             </div>
-
-            <div class="attendance-record">
-                <div class="record-employee">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">RC</div>
-                        <div>
-                            <p style="margin: 0; font-weight: 600;">Rachel Chen</p>
-                            <small style="color: var(--text-light);">Sales Department</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="record-times">
-                    <div class="time-badge">
-                        <small>Check In</small><br>
-                        <strong>09:48 AM</strong>
-                    </div>
-                    <div class="time-badge">
-                        <small>Check Out</small><br>
-                        <strong>05:55 PM</strong>
-                    </div>
-                </div>
-                <div style="text-align: center;">
-                    <span class="badge badge-warning">Late</span>
-                </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Check In Time</label>
+                <input type="time" class="form-control" id="attCheckIn">
             </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Check Out Time</label>
+                <input type="time" class="form-control" id="attCheckOut">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" onclick="closeAttendanceModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="markAttendance()">Save</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
+        let attendanceRecords = [];
+        let employees = [];
+        let todayRecord = null;
+
+        const avatarColors = [
+            'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
+            'linear-gradient(135deg, #10b981 0%, #059e0a 100%)',
+            'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+            'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+            'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)'
+        ];
+
+        function getAvatarColor(id) {
+            return avatarColors[(id || 0) % avatarColors.length];
+        }
+
+        function formatTimeOnly(dateStr) {
+            if (!dateStr) return '—';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
         // Update time display
         function updateTime() {
             const now = new Date();
@@ -309,8 +294,243 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+
+            const hour = now.getHours();
+            let greeting = 'Good Morning!';
+            if (hour >= 12 && hour < 17) greeting = 'Good Afternoon!';
+            else if (hour >= 17) greeting = 'Good Evening!';
+            document.getElementById('greeting').textContent = greeting;
         }
         setInterval(updateTime, 1000);
         updateTime();
+
+        async function loadEmployees() {
+            try {
+                if (isAdminOrHR()) {
+                    employees = await EmployeesAPI.getAll();
+                    document.getElementById('mark-attendance-btn').style.display = '';
+                }
+            } catch (e) {
+                console.error('Failed to load employees', e);
+            }
+        }
+
+        async function loadAttendance() {
+            try {
+                if (isAdminOrHR()) {
+                    attendanceRecords = await AttendanceAPI.getAll();
+                } else {
+                    const empId = getUserEmployeeId();
+                    if (empId) {
+                        attendanceRecords = await AttendanceAPI.getByEmployee(empId);
+                    } else {
+                        attendanceRecords = [];
+                    }
+                }
+
+                // Filter by date if set
+                const filterDate = document.getElementById('filterDate').value;
+                const filterStatus = document.getElementById('filterStatus').value;
+
+                let filtered = attendanceRecords;
+                if (filterDate) {
+                    filtered = filtered.filter(a => a.date && a.date.startsWith(filterDate));
+                }
+                if (filterStatus) {
+                    filtered = filtered.filter(a => a.status === filterStatus);
+                }
+
+                updateStats(filtered);
+                renderAttendance(filtered);
+                
+                // Only show check-in area and check status if user has an employee ID
+                const myEmpId = getUserEmployeeId();
+                if (myEmpId) {
+                    document.getElementById('checkInArea').style.display = 'block';
+                    checkTodayStatus();
+                } else {
+                    document.getElementById('checkInArea').style.display = 'block';
+                    document.getElementById('checkInArea').innerHTML = `
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Check-in is unavailable because no employee record is linked to your account. Please contact HR to create your employee profile.
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                document.getElementById('attendance-records').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);"><i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Failed to load attendance records</div>';
+            }
+        }
+
+        function updateStats(records) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecords = records.filter(a => a.date && a.date.startsWith(today));
+
+            const present = todayRecords.filter(a => a.status === 'Present').length;
+            const absent = todayRecords.filter(a => a.status === 'Absent').length;
+            const late = todayRecords.filter(a => a.status === 'Late').length;
+            const total = todayRecords.length;
+            const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+
+            document.getElementById('stat-present').textContent = present;
+            document.getElementById('stat-absent').textContent = absent;
+            document.getElementById('stat-late').textContent = late;
+            document.getElementById('stat-rate').textContent = rate + '%';
+        }
+
+        function renderAttendance(records) {
+            const container = document.getElementById('attendance-records');
+
+            if (!records || records.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);"><i class="fas fa-clipboard-list" style="font-size:3rem;margin-bottom:1rem;display:block;"></i><h4>No Attendance Records Found</h4><p>No records match the current filters.</p></div>';
+                return;
+            }
+
+            // Sort by date descending
+            records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = records.map(record => {
+                const empName = record.employee?.fullName || 'Unknown';
+                const dept = record.employee?.department?.name || 'N/A';
+                const initials = getInitials(empName);
+                const color = getAvatarColor(record.employeeId);
+                const badgeClass = getStatusBadgeClass(record.status);
+
+                return `
+                <div class="attendance-record">
+                    <div class="record-employee">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">${initials}</div>
+                            <div>
+                                <p style="margin: 0; font-weight: 600;">${empName}</p>
+                                <small style="color: var(--text-light);">${dept} - ${formatDate(record.date)}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="record-times">
+                        <div class="time-badge">
+                            <small>Check In</small><br>
+                            <strong>${formatTimeOnly(record.checkIn)}</strong>
+                        </div>
+                        <div class="time-badge">
+                            <small>Check Out</small><br>
+                            <strong>${formatTimeOnly(record.checkOut)}</strong>
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <span class="badge ${badgeClass}">${record.status}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function checkIn() {
+            try {
+                const result = await AttendanceAPI.checkIn({});
+                showNotification('Success', 'Checked in successfully at ' + formatTimeOnly(result.checkIn), 'success');
+                document.getElementById('checkStatus').innerHTML = '<i class="fas fa-check-circle"></i> Checked in at ' + formatTimeOnly(result.checkIn);
+                document.getElementById('checkInBtn').disabled = true;
+                document.getElementById('checkInBtn').style.opacity = '0.5';
+                await loadAttendance();
+            } catch (e) {
+                showNotification('Error', 'Check-in failed: ' + e.message, 'danger');
+            }
+        }
+
+        async function checkOut() {
+            if (!todayRecord || !todayRecord.id) {
+                showNotification('Error', 'No check-in record found for today. Please check in first.', 'danger');
+                return;
+            }
+            try {
+                const result = await AttendanceAPI.checkOut(todayRecord.id);
+                showNotification('Success', 'Checked out successfully at ' + formatTimeOnly(result.checkOut), 'success');
+                document.getElementById('checkStatus').innerHTML = '<i class="fas fa-check-circle"></i> Checked out at ' + formatTimeOnly(result.checkOut);
+                document.getElementById('checkOutBtn').disabled = true;
+                document.getElementById('checkOutBtn').style.opacity = '0.5';
+                await loadAttendance();
+            } catch (e) {
+                showNotification('Error', 'Check-out failed: ' + e.message, 'danger');
+            }
+        }
+
+        async function checkTodayStatus() {
+            const today = new Date().toISOString().split('T')[0];
+            const empId = getUserEmployeeId();
+            if (!empId) return;
+
+            const myRecords = attendanceRecords.filter(a => a.employeeId == empId && a.date && a.date.startsWith(today));
+            if (myRecords.length > 0) {
+                todayRecord = myRecords[0];
+                if (todayRecord.checkIn && todayRecord.checkIn !== '0001-01-01T00:00:00') {
+                    document.getElementById('checkInBtn').disabled = true;
+                    document.getElementById('checkInBtn').style.opacity = '0.5';
+                    document.getElementById('checkStatus').innerHTML += '<div>Checked in at ' + formatTimeOnly(todayRecord.checkIn) + '</div>';
+                }
+                if (todayRecord.checkOut && todayRecord.checkOut !== '0001-01-01T00:00:00') {
+                    document.getElementById('checkOutBtn').disabled = true;
+                    document.getElementById('checkOutBtn').style.opacity = '0.5';
+                    document.getElementById('checkStatus').innerHTML += '<div>Checked out at ' + formatTimeOnly(todayRecord.checkOut) + '</div>';
+                }
+            }
+        }
+
+        function openMarkAttendanceModal() {
+            const select = document.getElementById('attEmployeeId');
+            select.innerHTML = '<option value="">Select Employee</option>';
+            employees.forEach(emp => {
+                select.innerHTML += `<option value="${emp.id}">${emp.fullName} - ${emp.department?.name || 'N/A'}</option>`;
+            });
+            document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('attStatus').value = 'Present';
+            document.getElementById('attCheckIn').value = '09:00';
+            document.getElementById('attCheckOut').value = '';
+            document.getElementById('attendanceModal').classList.add('active');
+        }
+
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').classList.remove('active');
+        }
+
+        async function markAttendance() {
+            const employeeId = document.getElementById('attEmployeeId').value;
+            const date = document.getElementById('attDate').value;
+            const status = document.getElementById('attStatus').value;
+            const checkIn = document.getElementById('attCheckIn').value;
+            const checkOut = document.getElementById('attCheckOut').value;
+
+            if (!employeeId || !date) {
+                showNotification('Validation Error', 'Employee and Date are required', 'danger');
+                return;
+            }
+
+            try {
+                const data = {
+                    employeeId: parseInt(employeeId),
+                    date: date,
+                    status: status
+                };
+                if (checkIn) data.checkIn = new Date(date + 'T' + checkIn).toISOString();
+                if (checkOut) data.checkOut = new Date(date + 'T' + checkOut).toISOString();
+
+                await apiRequest('/api/Attendances', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                showNotification('Success', 'Attendance marked successfully', 'success');
+                closeAttendanceModal();
+                await loadAttendance();
+            } catch (e) {
+                showNotification('Error', 'Failed to mark attendance: ' + e.message, 'danger');
+            }
+        }
+
+        document.getElementById('filterDate').addEventListener('change', loadAttendance);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+            await loadEmployees();
+            await loadAttendance();
+        });
     </script>
 }

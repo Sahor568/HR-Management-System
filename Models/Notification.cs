@@ -9,10 +9,10 @@ namespace Management.Models
         
         [Required]
         [StringLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         
         [Required]
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         
         [Required]
         [StringLength(50)]
@@ -32,9 +32,9 @@ namespace Management.Models
         public long? RelatedEntityId { get; set; }
         
         [StringLength(50)]
-        public string RelatedEntityType { get; set; } // Leave, Payroll, Attendance, Employee, User
+        public string RelatedEntityType { get; set; } = string.Empty; // Leave, Payroll, Attendance, Employee, User
         
         // Navigation property
-        public User Recipient { get; set; }
+        public User? Recipient { get; set; }
     }
 }

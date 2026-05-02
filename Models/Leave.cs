@@ -12,6 +12,11 @@
 
         public string Reason { get; set; } = string.Empty;
 
-        public string Status { get; set; } = "Pending"; // Approved, Rejected
+        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
+        
+        // Approval tracking
+        public long? ApprovedBy { get; set; }
+        public DateTime? ApprovedAt { get; set; }
+        public string? ApprovalRemarks { get; set; }
     }
 }

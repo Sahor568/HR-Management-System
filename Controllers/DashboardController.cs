@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Management.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DashboardController : ControllerBase
     {
     private readonly ManagementContext _context;
@@ -39,35 +41,51 @@ namespace Management.Controllers
                 .Where(l => l.Status == "Pending")
                 .CountAsync();
 
-            // Get total payroll for current month
-            var currentMonth = DateTime.Now.Month;
-            var currentYear = DateTime.Now.Year;
-            var totalPayroll = await _context.Payrolls
-                .Where(p => p.Month == currentMonth && p.Year == currentYear)
-                .SumAsync(p => p.NetSalary);
+            // Only Admin/HR can see payroll totals
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var isAdminOrHR = userRole == "Admin" || userRole == "HR";
+
+            if (isAdminOrHR)
+            {
+                var currentMonth = DateTime.Now.Month;
+                var currentYear = DateTime.Now.Year;
+                var totalPayroll = await _context.Payrolls
+                    .Where(p => p.Month == currentMonth && p.Year == currentYear)
+                    .SumAsync(p => p.NetSalary);
+
+                return new
+                {
+                    TotalEmployees = totalEmployees,
+                    TotalDepartments = totalDepartments,
+                    TotalUsers = totalUsers,
+                    PresentToday = presentToday,
+                    PendingLeaves = pendingLeaves,
+                    TotalPayroll = totalPayroll,
+                    StatsDate = DateTime.Now
+                };
+            }
 
             return new
             {
                 TotalEmployees = totalEmployees,
                 TotalDepartments = totalDepartments,
-                TotalUsers = totalUsers,
                 PresentToday = presentToday,
                 PendingLeaves = pendingLeaves,
-                TotalPayroll = totalPayroll,
                 StatsDate = DateTime.Now
             };
         }
 
         // GET: api/Dashboard/employee-distribution
     [HttpGet("employee-distribution")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<IEnumerable<object>>> GetEmployeeDistribution()
         {
             var distribution = await _context.Employees
                 .Include(e => e.Department)
-                .GroupBy(e => e.Department.Name)
+                .GroupBy(e => e.Department != null ? e.Department.Name : "Unassigned")
                 .Select(g => new
                 {
-                    Department = g.Key,
+                    DepartmentName = g.Key,
                     EmployeeCount = g.Count(),
                     AverageSalary = g.Average(e => e.Salary)
                 })
@@ -78,9 +96,11 @@ namespace Management.Controllers
 
         // GET: api/Dashboard/attendance-trend
     [HttpGet("attendance-trend")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<IEnumerable<object>>> GetAttendanceTrend([FromQuery] int days = 30)
         {
             var startDate = DateTime.Today.AddDays(-days);
+            var totalEmployees = await _context.Employees.CountAsync();
             
             var trend = await _context.Attendances
                 .Where(a => a.Date >= startDate)
@@ -90,7 +110,8 @@ namespace Management.Controllers
                     Date = g.Key,
                     PresentCount = g.Count(a => a.Status == "Present"),
                     AbsentCount = g.Count(a => a.Status == "Absent"),
-                    LateCount = g.Count(a => a.Status == "Late")
+                    LateCount = g.Count(a => a.Status == "Late"),
+                    TotalEmployees = totalEmployees
                 })
                 .OrderBy(g => g.Date)
                 .ToListAsync();
@@ -100,6 +121,7 @@ namespace Management.Controllers
 
         // GET: api/Dashboard/leave-summary
     [HttpGet("leave-summary")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<object>> GetLeaveSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
         {
             if (month == 0) month = DateTime.Now.Month;
@@ -128,6 +150,7 @@ namespace Management.Controllers
 
         // GET: api/Dashboard/payroll-summary
     [HttpGet("payroll-summary")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<object>> GetPayrollSummary([FromQuery] int month = 0, [FromQuery] int year = 0)
         {
             if (month == 0) month = DateTime.Now.Month;
@@ -163,8 +186,8 @@ namespace Management.Controllers
                     .Take(5)
                     .Select(p => new
                     {
-                        p.Employee.FullName,
-                        p.Employee.Department.Name,
+                        FullName = p.Employee != null ? p.Employee.FullName : "Unknown",
+                        DepartmentName = p.Employee != null && p.Employee.Department != null ? p.Employee.Department.Name : "Unassigned",
                         p.NetSalary
                     })
             };
@@ -196,6 +219,7 @@ namespace Management.Controllers
 
         // GET: api/Dashboard/employee-performance
     [HttpGet("employee-performance")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<IEnumerable<object>>> GetEmployeePerformance([FromQuery] int top = 10)
         {
             // Calculate performance based on attendance and leaves
@@ -207,7 +231,7 @@ namespace Management.Controllers
                 {
                     e.Id,
                     e.FullName,
-                    e.Department.Name,
+                    DepartmentName = e.Department != null ? e.Department.Name : "Unassigned",
                     e.Salary,
                     AttendanceRate = _context.Attendances
                         .Where(a => a.EmployeeId == e.Id && a.Date >= thirtyDaysAgo)
@@ -228,6 +252,7 @@ namespace Management.Controllers
 
         // GET: api/Dashboard/department-performance
     [HttpGet("department-performance")]
+    [Authorize(Policy = "AdminOrHR")]
             public async Task<ActionResult<IEnumerable<object>>> GetDepartmentPerformance()
         {
             var performance = await _context.Departments
@@ -239,8 +264,8 @@ namespace Management.Controllers
                     EmployeeCount = d.Employees.Count,
                     TotalSalary = d.Employees.Sum(e => e.Salary),
                     AverageSalary = d.Employees.Average(e => e.Salary),
-                    AttendanceRate = d.Employees.Count > 0 ? 
-                        d.Employees.Average(e => 
+                    AttendanceRate = d.Employees.Count > 0 ?
+                        d.Employees.Average(e =>
                             _context.Attendances
                                 .Count(a => a.EmployeeId == e.Id && a.Status == "Present") * 100.0 /
                                 Math.Max(1, _context.Attendances

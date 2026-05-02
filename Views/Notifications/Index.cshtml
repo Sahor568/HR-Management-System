@@ -2,333 +2,450 @@
     ViewData["Title"] = "Notifications";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <h1 class="page-title">Notifications</h1>
-                <p class="page-subtitle">Manage and view system notifications</p>
-            </div>
+<style>
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s ease;
+    }
+
+    .notification-item:hover {
+        background: var(--light-bg);
+    }
+
+    .notification-item.unread {
+        background: #eff6ff;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .notification-icon.system {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .notification-icon.user {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .notification-icon.alert {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .notification-icon.reminder {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-message {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-time {
+        font-size: 0.8rem;
+        color: var(--text-light);
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+
+    .type-count-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .type-count-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-dialog {
+        background: var(--white);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-body-custom {
+        padding: 1.5rem;
+    }
+
+    .modal-footer-custom {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-light);
+    }
+
+    .close-btn:hover {
+        color: var(--text-dark);
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Notifications</h1>
+            <p class="page-subtitle">Manage and view system notifications</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline-primary" onclick="markAllAsRead()">
+                <i class="fas fa-check-double"></i> Mark All Read
+            </button>
+            <button class="btn btn-primary" id="sendNotifBtn" style="display:none;" onclick="openSendModal()">
+                <i class="fas fa-paper-plane"></i> Send Notification
+            </button>
         </div>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">All Notifications</h5>
-                    <div class="card-actions">
-                        <button class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">Mark All as Read</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="clearAllNotifications()">Clear All</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="notifications-table">
-                            <thead>
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Message</th>
-                                    <th>Recipient</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Notifications will be loaded via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center" id="notifications-loading">
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h5 style="margin: 0;">All Notifications</h5>
+                <select id="typeFilter" class="form-control" style="max-width: 150px;" onchange="loadNotifications()">
+                    <option value="">All Types</option>
+                    <option value="System">System</option>
+                    <option value="User">User</option>
+                    <option value="Alert">Alert</option>
+                    <option value="Reminder">Reminder</option>
+                </select>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div id="notifications-list">
+                    <div class="text-center" style="padding: 2rem;">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                    <div class="text-center" id="no-notifications" style="display: none;">
-                        <p class="text-muted">No notifications found.</p>
-                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Notification Statistics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="stat-card">
-                                <div class="stat-value" id="total-notifications">0</div>
-                                <div class="stat-label">Total</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="stat-card">
-                                <div class="stat-value" id="unread-notifications">0</div>
-                                <div class="stat-label">Unread</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h6>Notification Types</h6>
-                        <div class="list-group">
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                System
-                                <span class="badge bg-primary rounded-pill" id="system-count">0</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                User
-                                <span class="badge bg-success rounded-pill" id="user-count">0</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Alert
-                                <span class="badge bg-warning rounded-pill" id="alert-count">0</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                Reminder
-                                <span class="badge bg-info rounded-pill" id="reminder-count">0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title">Send Notification</h5>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 style="margin: 0;">Notification Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" style="margin-bottom: 1rem;">
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--primary-color);" id="total-notifications">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: var(--warning-color);" id="unread-notifications">0</div>
+                            <div class="stat-label">Unread</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form id="send-notification-form">
-                        <div class="mb-3">
-                            <label for="recipient" class="form-label">Recipient</label>
-                            <select class="form-select" id="recipient" required>
-                                <option value="">Select recipient...</option>
-                                <!-- Will be populated via JavaScript -->
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="type" class="form-label">Type</label>
-                            <select class="form-select" id="type" required>
-                                <option value="System">System</option>
-                                <option value="User">User</option>
-                                <option value="Alert">Alert</option>
-                                <option value="Reminder">Reminder</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea class="form-control" id="message" rows="3" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Send Notification</button>
-                    </form>
+                <h6>Notification Types</h6>
+                <div id="type-counts">
+                    <div class="type-count-item">
+                        <span><i class="fas fa-cog" style="color:#2563eb;margin-right:0.5rem;"></i>System</span>
+                        <span class="badge bg-primary rounded-pill" id="system-count">0</span>
+                    </div>
+                    <div class="type-count-item">
+                        <span><i class="fas fa-user" style="color:#059669;margin-right:0.5rem;"></i>User</span>
+                        <span class="badge bg-success rounded-pill" id="user-count">0</span>
+                    </div>
+                    <div class="type-count-item">
+                        <span><i class="fas fa-exclamation-triangle" style="color:#d97706;margin-right:0.5rem;"></i>Alert</span>
+                        <span class="badge bg-warning rounded-pill" id="alert-count">0</span>
+                    </div>
+                    <div class="type-count-item">
+                        <span><i class="fas fa-clock" style="color:#4f46e5;margin-right:0.5rem;"></i>Reminder</span>
+                        <span class="badge bg-info rounded-pill" id="reminder-count">0</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Send Notification Modal -->
+<div class="modal-overlay" id="sendModal">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5>Send Notification</h5>
+            <button class="close-btn" onclick="closeModal('sendModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <form id="sendNotificationForm">
+                <div class="mb-3">
+                    <label for="recipient" class="form-label">Recipient <span class="text-danger">*</span></label>
+                    <select class="form-select" id="recipient" required>
+                        <option value="">Select recipient...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="notifTitle" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="notifTitle" required placeholder="Notification title" />
+                </div>
+                <div class="mb-3">
+                    <label for="notifType" class="form-label">Type</label>
+                    <select class="form-select" id="notifType">
+                        <option value="System">System</option>
+                        <option value="User">User</option>
+                        <option value="Alert">Alert</option>
+                        <option value="Reminder">Reminder</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="notifMessage" class="form-label">Message <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="notifMessage" rows="3" required placeholder="Notification message..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('sendModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="sendNotification()">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            loadNotifications();
-            loadUsersForDropdown();
-            loadNotificationStats();
+        let allNotifications = [];
 
-            // Handle form submission
-            $('#send-notification-form').submit(function(e) {
-                e.preventDefault();
-                sendNotification();
-            });
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            loadStats();
+
+            // Show send button only for Admin/HR
+            if (isAdminOrHR()) {
+                document.getElementById('sendNotifBtn').style.display = '';
+            }
         });
 
         async function loadNotifications() {
             try {
-                const response = await fetch('/api/Notifications');
-                if (response.ok) {
-                    const notifications = await response.json();
-                    displayNotifications(notifications);
+                const response = await NotificationsAPI.getAll();
+                allNotifications = response.notifications || response;
+
+                const typeFilter = document.getElementById('typeFilter').value;
+                let filtered = allNotifications;
+                if (typeFilter) {
+                    filtered = filtered.filter(n => n.notificationType === typeFilter);
                 }
+
+                renderNotifications(filtered);
             } catch (error) {
                 console.error('Error loading notifications:', error);
-            } finally {
-                $('#notifications-loading').hide();
+                document.getElementById('notifications-list').innerHTML = '<div class="text-center text-danger" style="padding:2rem;">Failed to load notifications.</div>';
             }
         }
 
-        function displayNotifications(notifications) {
-            const tbody = $('#notifications-table tbody');
-            tbody.empty();
+        function renderNotifications(notifications) {
+            const container = document.getElementById('notifications-list');
 
             if (notifications.length === 0) {
-                $('#no-notifications').show();
+                container.innerHTML = '<div class="text-center text-muted" style="padding:2rem;"><i class="fas fa-bell-slash" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>No notifications found.</div>';
                 return;
             }
 
-            notifications.forEach(notification => {
-                const row = `
-                    <tr class="${notification.isRead ? '' : 'table-info'}">
-                        <td>
-                            <span class="badge ${getNotificationTypeBadge(notification.type)}">
-                                ${notification.type}
-                            </span>
-                        </td>
-                        <td>${notification.message}</td>
-                        <td>${notification.recipientName || 'System'}</td>
-                        <td>${formatDate(notification.createdAt)}</td>
-                        <td>
-                            <span class="badge ${notification.isRead ? 'bg-success' : 'bg-warning'}">
-                                ${notification.isRead ? 'Read' : 'Unread'}
-                            </span>
-                        </td>
-                        <td>
-                            ${!notification.isRead ? 
-                                `<button class="btn btn-sm btn-outline-success" onclick="markAsRead(${notification.id})">Mark Read</button>` : 
-                                ''
-                            }
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteNotification(${notification.id})">Delete</button>
-                        </td>
-                    </tr>
+            container.innerHTML = notifications.map(n => {
+                const type = n.notificationType || 'System';
+                const isRead = n.isRead;
+                const iconClass = getTypeIconClass(type);
+                const timeStr = formatNotificationDate(n.createdAt);
+
+                return `
+                    <div class="notification-item ${isRead ? '' : 'unread'}">
+                        <div class="notification-icon ${type.toLowerCase()}">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-title">${escapeHtml(n.title || type + ' Notification')}</div>
+                            <div class="notification-message">${escapeHtml(n.message || '')}</div>
+                            <div class="notification-time">
+                                <i class="fas fa-clock"></i> ${timeStr}
+                                ${n.recipient ? ' | To: ' + escapeHtml(n.recipient.email || '') : ''}
+                            </div>
+                        </div>
+                        <div class="notification-actions">
+                            ${!isRead ? `<button class="btn btn-sm btn-outline-success" onclick="markAsRead(${n.id})" title="Mark as Read"><i class="fas fa-check"></i></button>` : ''}
+                            ${isAdmin() ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteNotification(${n.id})" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
+                    </div>
                 `;
-                tbody.append(row);
-            });
+            }).join('');
         }
 
-        function getNotificationTypeBadge(type) {
-            switch(type) {
-                case 'System': return 'bg-primary';
-                case 'User': return 'bg-success';
-                case 'Alert': return 'bg-warning';
-                case 'Reminder': return 'bg-info';
-                default: return 'bg-secondary';
+        function getTypeIconClass(type) {
+            switch (type) {
+                case 'System': return 'fa-cog';
+                case 'User': return 'fa-user';
+                case 'Alert': return 'fa-exclamation-triangle';
+                case 'Reminder': return 'fa-clock';
+                default: return 'fa-bell';
             }
         }
 
-        async function loadUsersForDropdown() {
+        function formatNotificationDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return diffMins + ' minutes ago';
+            if (diffHours < 24) return diffHours + ' hours ago';
+            if (diffDays < 7) return diffDays + ' days ago';
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadStats() {
             try {
-                const response = await fetch('/api/Users');
-                if (response.ok) {
-                    const users = await response.json();
-                    const select = $('#recipient');
-                    select.empty();
-                    select.append('<option value="">Select recipient...</option>');
-                    users.forEach(user => {
-                        select.append(`<option value="${user.id}">${user.name || user.email}</option>`);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading users:', error);
-            }
-        }
+                const response = await NotificationsAPI.getAll();
+                const notifications = response.notifications || response;
+                document.getElementById('total-notifications').textContent = response.totalCount || notifications.length;
 
-        async function loadNotificationStats() {
+                const unread = notifications.filter(n => !n.isRead).length;
+                document.getElementById('unread-notifications').textContent = unread;
+
+                const systemCount = notifications.filter(n => n.notificationType === 'System').length;
+                const userCount = notifications.filter(n => n.notificationType === 'User').length;
+                const alertCount = notifications.filter(n => n.notificationType === 'Alert').length;
+                const reminderCount = notifications.filter(n => n.notificationType === 'Reminder').length;
+
+                document.getElementById('system-count').textContent = systemCount;
+                document.getElementById('user-count').textContent = userCount;
+                document.getElementById('alert-count').textContent = alertCount;
+                document.getElementById('reminder-count').textContent = reminderCount;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+
+            // Also get unread count from API
             try {
-                // Load total notifications
-                const response = await fetch('/api/Notifications');
-                if (response.ok) {
-                    const notifications = await response.json();
-                    $('#total-notifications').text(notifications.length);
-
-                    // Count unread
-                    const unread = notifications.filter(n => !n.isRead).length;
-                    $('#unread-notifications').text(unread);
-
-                    // Count by type
-                    const systemCount = notifications.filter(n => n.type === 'System').length;
-                    const userCount = notifications.filter(n => n.type === 'User').length;
-                    const alertCount = notifications.filter(n => n.type === 'Alert').length;
-                    const reminderCount = notifications.filter(n => n.type === 'Reminder').length;
-
-                    $('#system-count').text(systemCount);
-                    $('#user-count').text(userCount);
-                    $('#alert-count').text(alertCount);
-                    $('#reminder-count').text(reminderCount);
-                }
-
-                // Load unread count from API
-                const unreadResponse = await fetch('/api/Notifications/unread-count');
-                if (unreadResponse.ok) {
-                    const unreadCount = await unreadResponse.json();
-                    $('#unread-notifications').text(unreadCount);
-                }
-            } catch (error) {
-                console.error('Error loading notification stats:', error);
-            }
-        }
-
-        async function sendNotification() {
-            const recipientId = $('#recipient').val();
-            const type = $('#type').val();
-            const message = $('#message').val();
-
-            if (!recipientId || !type || !message) {
-                alert('Please fill all fields');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/Notifications', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        recipientId: parseInt(recipientId),
-                        type: type,
-                        message: message,
-                        isRead: false
-                    })
-                });
-
-                if (response.ok) {
-                    alert('Notification sent successfully');
-                    $('#send-notification-form')[0].reset();
-                    loadNotifications();
-                    loadNotificationStats();
-                } else {
-                    alert('Failed to send notification');
-                }
-            } catch (error) {
-                console.error('Error sending notification:', error);
-                alert('Error sending notification');
+                const unreadResponse = await NotificationsAPI.getUnreadCount();
+                document.getElementById('unread-notifications').textContent = unreadResponse.count !== undefined ? unreadResponse.count : unreadResponse;
+            } catch (e) {
+                // Ignore
             }
         }
 
         async function markAsRead(id) {
             try {
-                const response = await fetch(`/api/Notifications/${id}/mark-read`, {
-                    method: 'PATCH'
-                });
-
-                if (response.ok) {
-                    loadNotifications();
-                    loadNotificationStats();
-                }
+                await NotificationsAPI.markRead(id);
+                loadNotifications();
+                loadStats();
+                updateNotificationCount();
             } catch (error) {
-                console.error('Error marking notification as read:', error);
+                console.error('Error marking as read:', error);
             }
         }
 
         async function markAllAsRead() {
             if (!confirm('Mark all notifications as read?')) return;
-
             try {
-                const response = await fetch('/api/Notifications');
-                if (response.ok) {
-                    const notifications = await response.json();
-                    const unreadNotifications = notifications.filter(n => !n.isRead);
-
-                    // Mark each unread notification as read
-                    for (const notification of unreadNotifications) {
-                        await fetch(`/api/Notifications/${notification.id}/mark-read`, {
-                            method: 'PATCH'
-                        });
-                    }
-
-                    loadNotifications();
-                    loadNotificationStats();
-                }
+                await NotificationsAPI.markAllRead();
+                showNotification('Success', 'All notifications marked as read!', 'success');
+                loadNotifications();
+                loadStats();
+                updateNotificationCount();
             } catch (error) {
                 console.error('Error marking all as read:', error);
             }
@@ -336,53 +453,81 @@
 
         async function deleteNotification(id) {
             if (!confirm('Delete this notification?')) return;
-
             try {
-                const response = await fetch(`/api/Notifications/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    loadNotifications();
-                    loadNotificationStats();
-                }
+                await apiRequest(`/api/Notifications/${id}`, { method: 'DELETE' });
+                showNotification('Success', 'Notification deleted.', 'success');
+                loadNotifications();
+                loadStats();
             } catch (error) {
                 console.error('Error deleting notification:', error);
             }
         }
 
-        async function clearAllNotifications() {
-            if (!confirm('Clear all notifications? This cannot be undone.')) return;
+        async function openSendModal() {
+            // Load users for dropdown
+            try {
+                const users = await UsersAPI.getAll();
+                const select = document.getElementById('recipient');
+                select.innerHTML = '<option value="">Select recipient...</option>';
+                users.forEach(u => {
+                    select.innerHTML += `<option value="${u.id}">${escapeHtml(u.email)} (${u.role})</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+
+            document.getElementById('notifTitle').value = '';
+            document.getElementById('notifMessage').value = '';
+            document.getElementById('notifType').value = 'System';
+            document.getElementById('sendModal').classList.add('active');
+        }
+
+        async function sendNotification() {
+            const recipientId = document.getElementById('recipient').value;
+            const title = document.getElementById('notifTitle').value.trim();
+            const type = document.getElementById('notifType').value;
+            const message = document.getElementById('notifMessage').value.trim();
+
+            if (!recipientId || !title || !message) {
+                showNotification('Validation Error', 'Please fill in all required fields.', 'danger');
+                return;
+            }
 
             try {
-                const response = await fetch('/api/Notifications');
-                if (response.ok) {
-                    const notifications = await response.json();
-
-                    // Delete each notification
-                    for (const notification of notifications) {
-                        await fetch(`/api/Notifications/${notification.id}`, {
-                            method: 'DELETE'
-                        });
-                    }
-
-                    loadNotifications();
-                    loadNotificationStats();
-                }
+                await NotificationsAPI.create({
+                    recipientId: parseInt(recipientId),
+                    title: title,
+                    notificationType: type,
+                    message: message,
+                    notificationScope: 'Individual',
+                    isRead: false
+                });
+                showNotification('Success', 'Notification sent successfully!', 'success');
+                closeModal('sendModal');
+                loadNotifications();
+                loadStats();
             } catch (error) {
-                console.error('Error clearing all notifications:', error);
+                console.error('Error sending notification:', error);
             }
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
         }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
     </script>
 }

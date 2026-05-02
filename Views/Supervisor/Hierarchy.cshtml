@@ -1,0 +1,612 @@
+@{
+    ViewData["Title"] = "Organizational Hierarchy";
+}
+
+<style>
+    .org-chart-container {
+        width: 100%;
+        overflow-x: auto;
+        padding: 2rem 0;
+        min-height: 600px;
+    }
+    
+    .org-tree {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+    
+    .org-level {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 4rem;
+        position: relative;
+        width: 100%;
+    }
+    
+    .org-node {
+        background: white;
+        border: 2px solid #2563eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        min-width: 240px;
+        max-width: 280px;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.15);
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+        margin: 0 1.5rem;
+    }
+    
+    .org-node:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+        z-index: 10;
+    }
+    
+    .node-connector-down {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 30px;
+        background: #2563eb;
+        z-index: 1;
+    }
+    
+    .node-connector-up {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 30px;
+        background: #2563eb;
+        z-index: 1;
+    }
+    
+    .node-connector-horizontal {
+        position: absolute;
+        top: 50%;
+        width: 3rem;
+        height: 2px;
+        background: #2563eb;
+        z-index: 1;
+    }
+    
+    .node-name {
+        font-weight: 800;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        color: #1e3a8a;
+    }
+    
+    .node-position {
+        color: #4b5563;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        min-height: 1.5rem;
+    }
+    
+    .node-department {
+        display: inline-block;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        padding: 0.35rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .node-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.75rem;
+    }
+    
+    .node-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .control-group {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #4b5563;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #d1d5db;
+    }
+    
+    .zoom-controls {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 1000;
+    }
+</style>
+
+<div class="page-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="page-title">Organizational Hierarchy</h1>
+            <p class="page-subtitle">Complete organizational chart showing reporting relationships</p>
+        </div>
+        <div>
+            <a href="/Supervisor/Index" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Supervisor Management
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <div class="control-group">
+        <label class="form-label mb-0">Department:</label>
+        <select class="form-select" id="departmentFilter" style="width: 200px;">
+            <option value="">All Departments</option>
+        </select>
+    </div>
+    
+    <div class="control-group">
+        <label class="form-label mb-0">View:</label>
+        <select class="form-select" id="viewType" style="width: 150px;">
+            <option value="full">Full Hierarchy</option>
+            <option value="top-down">Top-Down</option>
+            <option value="bottom-up">Bottom-Up</option>
+        </select>
+    </div>
+    
+    <div class="control-group">
+        <button class="btn btn-outline-secondary" onclick="resetView()">
+            <i class="fas fa-redo me-2"></i> Reset View
+        </button>
+        <button class="btn btn-primary" onclick="exportChart()">
+            <i class="fas fa-download me-2"></i> Export
+        </button>
+    </div>
+</div>
+
+<div class="org-chart-container" id="chartContainer">
+    <div class="org-tree" id="orgTree">
+        <div class="empty-state">
+            <i class="fas fa-sitemap"></i>
+            <h4>Loading organizational chart...</h4>
+            <p>Please wait while we load the hierarchy data</p>
+        </div>
+    </div>
+</div>
+
+<div class="legend">
+    <div class="legend-item">
+        <div class="legend-color" style="background: #2563eb;"></div>
+        <span>Employee Node</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #10b981;"></div>
+        <span>Department Head</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #f59e0b;"></div>
+        <span>Team Lead</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background: #8b5cf6;"></div>
+        <span>Executive</span>
+    </div>
+</div>
+
+<div class="zoom-controls">
+    <button class="btn btn-sm btn-light" onclick="zoomIn()">
+        <i class="fas fa-search-plus"></i>
+    </button>
+    <button class="btn btn-sm btn-light" onclick="zoomOut()">
+        <i class="fas fa-search-minus"></i>
+    </button>
+    <button class="btn btn-sm btn-light" onclick="zoomReset()">
+        <i class="fas fa-expand-alt"></i>
+    </button>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let hierarchyData = null;
+        let chartScale = 1;
+        
+        // Build a tree structure from the flat employee list returned by the API
+        function buildTree(employees) {
+            const map = {};
+            const roots = [];
+            
+            // Create a map of all employees
+            employees.forEach(emp => {
+                map[emp.id] = { ...emp, subordinates: [] };
+            });
+            
+            // Build tree relationships
+            employees.forEach(emp => {
+                if (emp.supervisorId && map[emp.supervisorId]) {
+                    map[emp.supervisorId].subordinates.push(map[emp.id]);
+                } else {
+                    roots.push(map[emp.id]);
+                }
+            });
+            
+            return roots;
+        }
+        
+        // Load hierarchy data
+        async function loadHierarchy() {
+            try {
+                const data = await SupervisorAPI.getHierarchy();
+                hierarchyData = data;
+                
+                // Load departments for filter
+                await loadDepartments();
+                
+                // Build tree from flat list and render
+                const tree = buildTree(data.employees);
+                renderChart(tree);
+            } catch (e) {
+                document.getElementById('orgTree').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Failed to load hierarchy</h4>
+                        <p>There was an error loading the organizational chart data.</p>
+                        <button class="btn btn-primary mt-2" onclick="loadHierarchy()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load departments for filter
+        async function loadDepartments() {
+            try {
+                const departments = await DepartmentsAPI.getAll();
+                const select = document.getElementById('departmentFilter');
+                select.innerHTML = '<option value="">All Departments</option>' +
+                    departments.map(dept => `<option value="${dept.id}">${dept.name}</option>`).join('');
+                
+                // Add change event
+                select.addEventListener('change', filterByDepartment);
+            } catch (e) {
+                console.error('Failed to load departments:', e);
+            }
+        }
+        
+        // Filter by department
+        function filterByDepartment() {
+            const deptId = document.getElementById('departmentFilter').value;
+            if (!hierarchyData) return;
+            
+            const tree = buildTree(hierarchyData.employees);
+            
+            if (!deptId) {
+                renderChart(tree);
+                return;
+            }
+            
+            // Filter employees by department
+            const filtered = filterTreeByDepartment(tree, parseInt(deptId));
+            renderChart(filtered);
+        }
+        
+        // Recursive function to filter tree by department
+        function filterTreeByDepartment(nodes, deptId) {
+            return nodes.filter(emp => {
+                if (emp.department && emp.department.id === deptId) {
+                    if (emp.subordinates && emp.subordinates.length > 0) {
+                        emp.subordinates = filterTreeByDepartment(emp.subordinates, deptId);
+                    }
+                    return true;
+                }
+                
+                // Check if any subordinate is in the department
+                if (emp.subordinates && emp.subordinates.length > 0) {
+                    const filteredSubordinates = filterTreeByDepartment(emp.subordinates, deptId);
+                    if (filteredSubordinates.length > 0) {
+                        emp.subordinates = filteredSubordinates;
+                        return true;
+                    }
+                }
+                
+                return false;
+            });
+        }
+        
+        // Render organizational chart
+        function renderChart(employees) {
+            const container = document.getElementById('orgTree');
+            
+            if (!employees || employees.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users-slash"></i>
+                        <h4>No employees found</h4>
+                        <p>There are no employees to display in the organizational chart.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Build levels from tree
+            const levels = buildLevels(employees);
+            
+            let html = '';
+            levels.forEach((levelEmployees, levelIndex) => {
+                html += `<div class="org-level" data-level="${levelIndex}">`;
+                
+                levelEmployees.forEach((emp, empIndex) => {
+                    // Determine node color based on position
+                    let nodeClass = 'org-node';
+                    const position = emp.position ? emp.position.toLowerCase() : '';
+                    let borderColor = '#2563eb'; // Default blue
+                    
+                    if (position.includes('director') || position.includes('head') || position.includes('chief')) {
+                        borderColor = '#10b981'; // Green for department heads
+                    } else if (position.includes('manager') || position.includes('lead') || position.includes('supervisor')) {
+                        borderColor = '#f59e0b'; // Orange for team leads
+                    } else if (position.includes('executive') || position.includes('ceo') || position.includes('president')) {
+                        borderColor = '#8b5cf6'; // Purple for executives
+                    }
+                    
+                    html += `
+                        <div class="${nodeClass}" style="border-color: ${borderColor};" data-id="${emp.id}">
+                            <div class="node-name">${emp.fullName}</div>
+                            <div class="node-position">${emp.position || 'N/A'}</div>
+                            <div class="node-department">${emp.department ? emp.department.name : 'N/A'}</div>
+                            <div class="node-info">
+                                <div class="node-info-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>${emp.supervisorName || 'No Supervisor'}</span>
+                                </div>
+                                <div class="node-info-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>${emp.subordinateCount || 0}</span>
+                                </div>
+                            </div>
+                            ${emp.subordinateCount > 0 ? '<div class="node-connector-down"></div>' : ''}
+                            ${levelIndex > 0 ? '<div class="node-connector-up"></div>' : ''}
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+            applyConnectors();
+        }
+        
+        // Build hierarchical levels from tree data
+        function buildLevels(employees) {
+            const levels = [];
+            
+            function addToLevels(node, level) {
+                if (!levels[level]) {
+                    levels[level] = [];
+                }
+                
+                // Check if node already exists in this level (avoid duplicates)
+                if (!levels[level].some(n => n.id === node.id)) {
+                    levels[level].push(node);
+                }
+                
+                // Process subordinates
+                if (node.subordinates && node.subordinates.length > 0) {
+                    node.subordinates.forEach(sub => {
+                        addToLevels(sub, level + 1);
+                    });
+                }
+            }
+            
+            // Start with root nodes
+            employees.forEach(emp => {
+                addToLevels(emp, 0);
+            });
+            
+            return levels.filter(level => level.length > 0);
+        }
+        
+        // Apply horizontal connectors between nodes at same level
+        function applyConnectors() {
+            // This is a simplified implementation
+            // In a real app, you'd use a library like D3.js for complex org charts
+        }
+        
+        // Zoom functions
+        function zoomIn() {
+            chartScale = Math.min(chartScale + 0.1, 2);
+            updateChartScale();
+        }
+        
+        function zoomOut() {
+            chartScale = Math.max(chartScale - 0.1, 0.5);
+            updateChartScale();
+        }
+        
+        function zoomReset() {
+            chartScale = 1;
+            updateChartScale();
+        }
+        
+        function updateChartScale() {
+            const container = document.getElementById('chartContainer');
+            container.style.transform = `scale(${chartScale})`;
+            container.style.transformOrigin = 'top center';
+        }
+        
+        // Reset view
+        function resetView() {
+            document.getElementById('departmentFilter').value = '';
+            document.getElementById('viewType').value = 'full';
+            zoomReset();
+            if (hierarchyData) {
+                const tree = buildTree(hierarchyData.employees);
+                renderChart(tree);
+            }
+        }
+        
+        // Export chart using html2canvas and jsPDF
+        async function exportChart() {
+            const container = document.getElementById('chartContainer');
+            
+            // Show loading state
+            const exportBtn = document.querySelector('button[onclick="exportChart()"]');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Exporting...';
+            exportBtn.disabled = true;
+            
+            try {
+                // Temporarily reset zoom for accurate capture
+                const originalScale = chartScale;
+                zoomReset();
+                
+                // Wait a moment for DOM updates
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    backgroundColor: '#f8fafc',
+                    logging: false,
+                    useCORS: true
+                });
+                
+                // Restore zoom
+                chartScale = originalScale;
+                updateChartScale();
+                
+                // Create PDF (landscape)
+                const pdf = new jspdf.jsPDF('l', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                
+                // Calculate scale to fit page width
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const width = imgWidth * ratio;
+                const height = imgHeight * ratio;
+                
+                // Center image
+                const x = (pdfWidth - width) / 2;
+                const y = (pdfHeight - height) / 2;
+                
+                pdf.addImage(imgData, 'JPEG', x, y, width, height);
+                pdf.save('Organizational_Hierarchy.pdf');
+                
+            } catch (error) {
+                console.error('Error exporting chart:', error);
+                alert('Failed to export chart. Please try again.');
+            } finally {
+                // Restore button
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHierarchy();
+            
+            // Add view type change event
+            document.getElementById('viewType').addEventListener('change', function() {
+                if (!hierarchyData) return;
+                const tree = buildTree(hierarchyData.employees);
+                const viewType = this.value;
+                
+                if (viewType === 'top-down') {
+                    renderChart(tree);
+                } else if (viewType === 'bottom-up') {
+                    // Reverse the levels for bottom-up view
+                    const levels = buildLevels(tree);
+                    levels.reverse();
+                    const container = document.getElementById('orgTree');
+                    let html = '';
+                    levels.forEach((levelEmployees, levelIndex) => {
+                        html += `<div class="org-level" data-level="${levelIndex}">`;
+                        levelEmployees.forEach(emp => {
+                            const position = emp.position ? emp.position.toLowerCase() : '';
+                            let borderColor = '#2563eb';
+                            if (position.includes('director') || position.includes('head') || position.includes('chief')) borderColor = '#10b981';
+                            else if (position.includes('manager') || position.includes('lead') || position.includes('supervisor')) borderColor = '#f59e0b';
+                            else if (position.includes('executive') || position.includes('ceo') || position.includes('president')) borderColor = '#8b5cf6';
+                            
+                            html += `
+                                <div class="org-node" style="border-color: ${borderColor};" data-id="${emp.id}">
+                                    <div class="node-name">${emp.fullName}</div>
+                                    <div class="node-position">${emp.position || 'N/A'}</div>
+                                    <div class="node-department">${emp.department ? emp.department.name : 'N/A'}</div>
+                                    <div class="node-info">
+                                        <div class="node-info-item"><i class="fas fa-user-tie"></i><span>${emp.supervisorName || 'No Supervisor'}</span></div>
+                                        <div class="node-info-item"><i class="fas fa-users"></i><span>${emp.subordinateCount || 0}</span></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                } else {
+                    renderChart(tree);
+                }
+            });
+        });
+    </script>
+}

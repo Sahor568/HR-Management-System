@@ -111,6 +111,12 @@
         transform: translateY(-2px);
     }
 
+    .login-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
     .signup-link {
         text-align: center;
         margin-top: 1.5rem;
@@ -142,6 +148,17 @@
         display: block;
         margin-bottom: 0.5rem;
     }
+
+    .login-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        display: none;
+    }
 </style>
 
 <div class="login-container">
@@ -156,12 +173,13 @@
 
         <div class="demo-notice">
             <strong>Demo Credentials:</strong>
-            Admin: admin@company.com | Password: Admin123
-            HR: sarah@company.com | Password: Password123
-            Employee: john@company.com | Password: Password123
+            Admin: admin@hrsystem.com / 11111111<br>
+            HR: hr@hrsystem.com / Hr@123
         </div>
 
-        <form method="post" asp-action="Login" asp-controller="Login">
+        <div class="login-error" id="loginError"></div>
+
+        <form id="loginForm">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="your@company.com" required>
@@ -180,13 +198,99 @@
                 <a href="#">Forgot Password?</a>
             </div>
 
-            <button type="submit" class="login-btn">
+            <button type="submit" class="login-btn" id="loginBtn">
                 <i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i> Sign In
             </button>
         </form>
 
         <div class="signup-link">
-            Don&apos;t have an account? <a href="#">Register here</a>
+            Don't have an account? Contact your administrator
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // If already authenticated, redirect to dashboard
+            if (isAuthenticated()) {
+                window.location.href = '/Home/Dashboard';
+                return;
+            }
+
+            $('#loginForm').on('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = $('#email').val().trim();
+                const password = $('#password').val();
+                const $btn = $('#loginBtn');
+                const $error = $('#loginError');
+                
+                if (!email || !password) {
+                    $error.text('Email and password are required').show();
+                    return;
+                }
+                
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Signing in...');
+                $error.hide();
+                
+                try {
+                    // Step 1: Call API login to get JWT token
+                    const apiResponse = await fetch('/api/Login/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    if (!apiResponse.ok) {
+                        const errorText = await apiResponse.text();
+                        throw new Error(errorText || 'Invalid email or password');
+                    }
+                    
+                    const loginData = await apiResponse.json();
+                    
+                    // Store JWT token and user info in localStorage
+                    localStorage.setItem('auth_token', loginData.token);
+                    localStorage.setItem('user_email', loginData.email);
+                    localStorage.setItem('user_role', loginData.role);
+                    localStorage.setItem('user_id', loginData.id);
+                    localStorage.setItem('user_name', loginData.email);
+                    
+                    // Step 2: Also create cookie authentication via MVC
+                    const formData = new FormData();
+                    formData.append('email', email);
+                    formData.append('password', password);
+                    
+                    await fetch('/Home/Login', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include'
+                    });
+                    
+                    // Step 3: Get employee record if exists
+                    try {
+                        const profileResponse = await fetch('/api/Employees/my-profile', {
+                            headers: { 'Authorization': `Bearer ${loginData.token}` }
+                        });
+                        if (profileResponse.ok) {
+                            const profileData = await profileResponse.json();
+                            if (profileData.id) {
+                                localStorage.setItem('user_employeeId', profileData.id);
+                                localStorage.setItem('user_name', profileData.fullName || loginData.email);
+                            }
+                        }
+                    } catch (e) {
+                        // Profile fetch failed, continue anyway
+                    }
+                    
+                    // Redirect to dashboard
+                    window.location.href = '/Home/Dashboard';
+                    
+                } catch (error) {
+                    $error.text(error.message || 'Login failed. Please try again.').show();
+                    $btn.prop('disabled', false).html('<i class="fas fa-sign-in-alt" style="margin-right: 0.5rem;"></i> Sign In');
+                }
+            });
+        });
+    </script>
+}

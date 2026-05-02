@@ -32,18 +32,83 @@
         margin-top: 0.5rem;
     }
 
-    .stat-change.positive {
-        color: var(--success-color);
-    }
-
-    .stat-change.negative {
-        color: var(--danger-color);
-    }
+    .stat-change.positive { color: var(--success-color); }
+    .stat-change.negative { color: var(--danger-color); }
 
     .row-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
+    }
+
+    .progress-bar-custom {
+        width: 100%;
+        height: 8px;
+        background: var(--light-bg);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        height: 200px;
+        padding-bottom: 30px;
+        position: relative;
+    }
+
+    .bar-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+    }
+
+    .bar-fill {
+        width: 100%;
+        max-width: 50px;
+        background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%);
+        border-radius: 6px 6px 0 0;
+        min-height: 4px;
+        transition: height 0.5s ease;
+    }
+
+    .bar-label {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: 8px;
+        position: absolute;
+        bottom: 0;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
     }
 </style>
 
@@ -59,9 +124,9 @@
             <i class="fas fa-users"></i>
         </div>
         <h5 class="kpi-label">Total Employees</h5>
-        <div class="kpi-value" id="total-employees">156</div>
+        <div class="kpi-value" id="total-employees">--</div>
         <div class="stat-change positive" id="employee-change">
-            <i class="fas fa-arrow-up"></i> 12 this month
+            <i class="fas fa-users"></i> Active workforce
         </div>
     </div>
 
@@ -70,9 +135,9 @@
             <i class="fas fa-check-circle"></i>
         </div>
         <h5 class="kpi-label">Present Today</h5>
-        <div class="kpi-value" id="present-today">142</div>
+        <div class="kpi-value" id="present-today">--</div>
         <div class="stat-change positive" id="attendance-percent">
-            <i class="fas fa-arrow-up"></i> 91% attendance
+            <i class="fas fa-arrow-up"></i> --% attendance
         </div>
     </div>
 
@@ -81,18 +146,18 @@
             <i class="fas fa-calendar-alt"></i>
         </div>
         <h5 class="kpi-label">Pending Leaves</h5>
-        <div class="kpi-value" id="pending-leaves">8</div>
+        <div class="kpi-value" id="pending-leaves">--</div>
         <div class="stat-change negative" id="leaves-change">
-            <i class="fas fa-arrow-down"></i> 3 from this week
+            <i class="fas fa-clock"></i> Awaiting approval
         </div>
     </div>
 
-    <div class="kpi-card">
+    <div class="kpi-card" id="payroll-card">
         <div class="kpi-icon" style="background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); color: var(--danger-color);">
             <i class="fas fa-money-bill-wave"></i>
         </div>
         <h5 class="kpi-label">Monthly Payroll</h5>
-        <div class="kpi-value" id="monthly-payroll">$485K</div>
+        <div class="kpi-value" id="monthly-payroll">--</div>
         <div class="stat-change" id="payroll-period">
             <i class="fas fa-calendar"></i> Current Month
         </div>
@@ -103,18 +168,18 @@
             <i class="fas fa-sitemap"></i>
         </div>
         <h5 class="kpi-label">Departments</h5>
-        <div class="kpi-value" id="total-departments">8</div>
+        <div class="kpi-value" id="total-departments">--</div>
         <div class="stat-change">
             <i class="fas fa-building"></i> Active
         </div>
     </div>
 
-    <div class="kpi-card">
+    <div class="kpi-card" id="avg-salary-card">
         <div class="kpi-icon" style="background: linear-gradient(135deg, #06b6d415 0%, #0891b215 100%); color: #0891b2;">
             <i class="fas fa-chart-pie"></i>
         </div>
         <h5 class="kpi-label">Avg. Salary</h5>
-        <div class="kpi-value" id="avg-salary">$3.1K</div>
+        <div class="kpi-value" id="avg-salary">--</div>
         <div class="stat-change">
             <i class="fas fa-arrow-right"></i> Per Employee
         </div>
@@ -128,31 +193,11 @@
         <h5 class="chart-title">
             <i class="fas fa-chart-line"></i> Attendance Trend (Last 7 Days)
         </h5>
-        <div style="height: 200px; display: flex; align-items: flex-end; gap: 1rem; margin-bottom: 1rem;">
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 85%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Mon</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 75%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Tue</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 95%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Wed</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 70%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Thu</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 88%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Fri</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 50%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Sat</span>
-            </div>
-            <div style="flex: 1; background: linear-gradient(180deg, #2563eb 0%, #2563eb88 100%); height: 45%; border-radius: 6px; position: relative;">
-                <span style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-light);">Sun</span>
-            </div>
+        <div class="bar-chart" id="attendance-chart">
+            <div class="text-center text-muted w-100">Loading...</div>
         </div>
-        <div style="margin-top: 40px; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-            <small class="text-muted">Average attendance: 87.8%</small>
+        <div style="margin-top: 10px; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <small class="text-muted" id="avg-attendance-text">Average attendance: --</small>
         </div>
     </div>
 
@@ -161,34 +206,8 @@
         <h5 class="chart-title">
             <i class="fas fa-calendar-check"></i> Leave Status
         </h5>
-        <div style="padding: 1rem;">
-            <div style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.9rem; color: var(--text-light);">Approved</span>
-                    <strong>32</strong>
-                </div>
-                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
-                    <div style="width: 65%; height: 100%; background: var(--success-color);"></div>
-                </div>
-            </div>
-            <div style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.9rem; color: var(--text-light);">Pending</span>
-                    <strong>8</strong>
-                </div>
-                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
-                    <div style="width: 16%; height: 100%; background: var(--warning-color);"></div>
-                </div>
-            </div>
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span style="font-size: 0.9rem; color: var(--text-light);">Rejected</span>
-                    <strong>2</strong>
-                </div>
-                <div style="width: 100%; height: 8px; background: var(--light-bg); border-radius: 4px; overflow: hidden;">
-                    <div style="width: 4%; height: 100%; background: var(--danger-color);"></div>
-                </div>
-            </div>
+        <div style="padding: 1rem;" id="leave-status-container">
+            <div class="text-center text-muted">Loading...</div>
         </div>
     </div>
 
@@ -197,32 +216,9 @@
         <h5 class="chart-title">
             <i class="fas fa-users"></i> Department Distribution
         </h5>
-        <table style="width: 100%; font-size: 0.9rem;">
-            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">IT</td>
-                <td style="text-align: right; font-weight: 600; color: var(--primary-color);">28</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">HR</td>
-                <td style="text-align: right; font-weight: 600; color: var(--success-color);">15</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">Finance</td>
-                <td style="text-align: right; font-weight: 600; color: var(--warning-color);">22</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">Operations</td>
-                <td style="text-align: right; font-weight: 600;">18</td>
-            </tr>
-            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">Sales</td>
-                <td style="text-align: right; font-weight: 600;">25</td>
-            </tr>
-            <tr style="padding: 0.5rem 0;">
-                <td style="padding: 0.75rem 0;">Others</td>
-                <td style="text-align: right; font-weight: 600;">48</td>
-            </tr>
-        </table>
+        <div id="dept-distribution-container">
+            <div class="text-center text-muted">Loading...</div>
+        </div>
     </div>
 </div>
 
@@ -234,154 +230,206 @@
         </h5>
     </div>
     <div class="card-body">
-        <div style="max-height: 300px; overflow-y: auto;">
-            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <div style="flex: 1;">
-                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">New Employee Added</p>
-                    <small style="color: var(--text-light);">John Doe joined IT Department</small>
-                    <br>
-                    <small style="color: var(--text-light);">2 hours ago</small>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10b98115 0%, #059e0a15 100%); display: flex; align-items: center; justify-content: center; color: var(--success-color); flex-shrink: 0;">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div style="flex: 1;">
-                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Leave Approved</p>
-                    <small style="color: var(--text-light);">Sarah's vacation leave for May 15-20 approved</small>
-                    <br>
-                    <small style="color: var(--text-light);">4 hours ago</small>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b15 0%, #d9790015 100%); display: flex; align-items: center; justify-content: center; color: var(--warning-color); flex-shrink: 0;">
-                    <i class="fas fa-money-bill"></i>
-                </div>
-                <div style="flex: 1;">
-                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Payroll Generated</p>
-                    <small style="color: var(--text-light);">Monthly payroll for April processed successfully</small>
-                    <br>
-                    <small style="color: var(--text-light);">6 hours ago</small>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 1rem; padding: 1rem 0;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ef444415 0%, #dc263015 100%); display: flex; align-items: center; justify-content: center; color: var(--danger-color); flex-shrink: 0;">
-                    <i class="fas fa-user-slash"></i>
-                </div>
-                <div style="flex: 1;">
-                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">Employee Absent</p>
-                    <small style="color: var(--text-light);">Mike is marked absent for today</small>
-                    <br>
-                    <small style="color: var(--text-light);">1 day ago</small>
-                </div>
-            </div>
+        <div style="max-height: 300px; overflow-y: auto;" id="recent-activities">
+            <div class="text-center text-muted">Loading...</div>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions -->
-<div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-    <a href="#" class="btn btn-primary w-100">
-        <i class="fas fa-plus"></i> Add Employee
-    </a>
-    <a href="#" class="btn btn-outline-primary w-100">
-        <i class="fas fa-file-alt"></i> View Reports
-    </a>
-    <a href="#" class="btn btn-outline-primary w-100">
-        <i class="fas fa-calendar"></i> Manage Leaves
-    </a>
-    <a href="#" class="btn btn-outline-primary w-100">
-        <i class="fas fa-cog"></i> Settings
-    </a>
+<div style="margin-top: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;" id="quick-actions">
 </div>
 
 @section Scripts {
     <script>
-        // Dashboard-specific JavaScript
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard page loaded');
-            
-            // If the dashboard API is available, use it to update stats
-            if (window.HRManagement && window.HRManagement.API.Dashboard) {
-                // Show loading state
-                const kpiValues = document.querySelectorAll('.kpi-value');
-                kpiValues.forEach(el => {
-                    el.innerHTML = '<span class="loading-dots">...</span>';
-                });
+        document.addEventListener('DOMContentLoaded', async function() {
+            const role = getUserRole();
+            const isAdminOrHRUser = isAdminOrHR();
+
+            // Load Dashboard Stats
+            try {
+                const stats = await DashboardAPI.getStats();
                 
-                // Fetch and update dashboard stats
-                window.HRManagement.API.Dashboard.getStats()
-                    .then(stats => {
-                        // Update all stats
-                        if (stats.totalEmployees !== undefined) {
-                            document.getElementById('total-employees').textContent = stats.totalEmployees;
-                        }
-                        if (stats.presentToday !== undefined) {
-                            document.getElementById('present-today').textContent = stats.presentToday;
-                            
-                            // Calculate and update attendance percentage
-                            const totalEmployees = stats.totalEmployees || 156;
-                            const attendancePercent = totalEmployees > 0
-                                ? Math.round((stats.presentToday / totalEmployees) * 100)
-                                : 0;
-                            document.getElementById('attendance-percent').innerHTML =
-                                `<i class="fas fa-arrow-up"></i> ${attendancePercent}% attendance`;
-                        }
-                        if (stats.pendingLeaves !== undefined) {
-                            document.getElementById('pending-leaves').textContent = stats.pendingLeaves;
-                        }
-                        if (stats.totalPayroll !== undefined) {
-                            const formatted = new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                            }).format(stats.totalPayroll);
-                            document.getElementById('monthly-payroll').textContent = formatted;
-                        }
-                        if (stats.totalDepartments !== undefined) {
-                            document.getElementById('total-departments').textContent = stats.totalDepartments;
-                        }
-                        
-                        // Calculate average salary if we have both payroll and employees
-                        if (stats.totalPayroll !== undefined && stats.totalEmployees !== undefined && stats.totalEmployees > 0) {
-                            const avgSalary = Math.round(stats.totalPayroll / stats.totalEmployees);
-                            const formattedAvg = new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD',
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                            }).format(avgSalary);
-                            document.getElementById('avg-salary').textContent = formattedAvg;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Failed to load dashboard stats:', error);
-                        // Revert to original values
-                        document.getElementById('total-employees').textContent = '156';
-                        document.getElementById('present-today').textContent = '142';
-                        document.getElementById('pending-leaves').textContent = '8';
-                        document.getElementById('monthly-payroll').textContent = '$485K';
-                        document.getElementById('total-departments').textContent = '8';
-                        document.getElementById('avg-salary').textContent = '$3.1K';
-                        
-                        // Show error notification
-                        if (window.HRManagement && window.HRManagement.Utils.showNotification) {
-                            window.HRManagement.Utils.showNotification(
-                                'Dashboard Data',
-                                'Using sample data. API connection failed.',
-                                'warning'
-                            );
-                        }
-                    });
+                if (stats.totalEmployees !== undefined) {
+                    document.getElementById('total-employees').textContent = stats.totalEmployees;
+                }
+                if (stats.presentToday !== undefined) {
+                    document.getElementById('present-today').textContent = stats.presentToday;
+                    const totalEmployees = stats.totalEmployees || 1;
+                    const attendancePercent = totalEmployees > 0
+                        ? Math.round((stats.presentToday / totalEmployees) * 100)
+                        : 0;
+                    document.getElementById('attendance-percent').innerHTML =
+                        `<i class="fas fa-arrow-up"></i> ${attendancePercent}% attendance`;
+                }
+                if (stats.pendingLeaves !== undefined) {
+                    document.getElementById('pending-leaves').textContent = stats.pendingLeaves;
+                }
+                if (stats.totalPayroll !== undefined) {
+                    const formatted = formatCurrency(stats.totalPayroll);
+                    document.getElementById('monthly-payroll').textContent = formatted;
+                } else {
+                    // Employee can't see payroll
+                    document.getElementById('payroll-card').style.display = 'none';
+                    document.getElementById('avg-salary-card').style.display = 'none';
+                }
+                if (stats.totalDepartments !== undefined) {
+                    document.getElementById('total-departments').textContent = stats.totalDepartments;
+                }
+                if (stats.totalPayroll !== undefined && stats.totalEmployees !== undefined && stats.totalEmployees > 0) {
+                    const avgSalary = Math.round(stats.totalPayroll / stats.totalEmployees);
+                    document.getElementById('avg-salary').textContent = formatCurrency(avgSalary);
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard stats:', error);
             }
+
+            // Load Attendance Trend
+            try {
+                const trend = await DashboardAPI.getAttendanceTrend(7);
+                const chartEl = document.getElementById('attendance-chart');
+                if (trend && Array.isArray(trend) && trend.length > 0) {
+                    const maxCount = Math.max(...trend.map(t => t.presentCount || 0), 1);
+                    let totalPercent = 0;
+                    chartEl.innerHTML = trend.map(t => {
+                        const height = maxCount > 0 ? Math.max((t.presentCount / maxCount) * 100, 4) : 4;
+                        const dayName = new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' });
+                        const percent = t.totalEmployees > 0 ? Math.round((t.presentCount / t.totalEmployees) * 100) : 0;
+                        totalPercent += percent;
+                        return `
+                            <div class="bar-item">
+                                <div class="bar-fill" style="height: ${height}%;" title="${dayName}: ${t.presentCount}/${t.totalEmployees} (${percent}%)"></div>
+                                <span class="bar-label">${dayName}</span>
+                            </div>
+                        `;
+                    }).join('');
+                    const avgPercent = Math.round(totalPercent / trend.length);
+                    document.getElementById('avg-attendance-text').textContent = `Average attendance: ${avgPercent}%`;
+                } else {
+                    chartEl.innerHTML = '<div class="text-center text-muted w-100">No attendance data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load attendance trend:', error);
+                document.getElementById('attendance-chart').innerHTML = '<div class="text-center text-muted w-100">Failed to load data</div>';
+            }
+
+            // Load Leave Summary
+            try {
+                const leaveSummary = await DashboardAPI.getLeaveSummary();
+                const container = document.getElementById('leave-status-container');
+                if (leaveSummary) {
+                    const approved = leaveSummary.approved || 0;
+                    const pending = leaveSummary.pending || 0;
+                    const rejected = leaveSummary.rejected || 0;
+                    const total = approved + pending + rejected;
+                    
+                    container.innerHTML = `
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: var(--text-light);">Approved</span>
+                                <strong>${approved}</strong>
+                            </div>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" style="width: ${total > 0 ? (approved/total*100) : 0}%; background: var(--success-color);"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: var(--text-light);">Pending</span>
+                                <strong>${pending}</strong>
+                            </div>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" style="width: ${total > 0 ? (pending/total*100) : 0}%; background: var(--warning-color);"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.9rem; color: var(--text-light);">Rejected</span>
+                                <strong>${rejected}</strong>
+                            </div>
+                            <div class="progress-bar-custom">
+                                <div class="progress-fill" style="width: ${total > 0 ? (rejected/total*100) : 0}%; background: var(--danger-color);"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load leave summary:', error);
+                document.getElementById('leave-status-container').innerHTML = '<div class="text-center text-muted">Failed to load data</div>';
+            }
+
+            // Load Department Distribution
+            try {
+                const distribution = await DashboardAPI.getEmployeeDistribution();
+                const container = document.getElementById('dept-distribution-container');
+                if (distribution && Array.isArray(distribution) && distribution.length > 0) {
+                    const colors = ['var(--primary-color)', 'var(--success-color)', 'var(--warning-color)', '#7c3aed', '#0891b2', '#ef4444'];
+                    container.innerHTML = `<table style="width: 100%; font-size: 0.9rem;">
+                        ${distribution.map((d, i) => `
+                            <tr style="border-bottom: 1px solid var(--border-color); padding: 0.5rem 0;">
+                                <td style="padding: 0.75rem 0;">${d.departmentName || d.name || 'Unknown'}</td>
+                                <td style="text-align: right; font-weight: 600; color: ${colors[i % colors.length]};">${d.employeeCount || d.count || 0}</td>
+                            </tr>
+                        `).join('')}
+                    </table>`;
+                } else {
+                    container.innerHTML = '<div class="text-center text-muted">No department data available</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load department distribution:', error);
+                document.getElementById('dept-distribution-container').innerHTML = '<div class="text-center text-muted">Failed to load data</div>';
+            }
+
+            // Load Recent Activities (from notifications)
+            try {
+                const notifResponse = await NotificationsAPI.getAll();
+                const notifications = notifResponse.notifications || notifResponse;
+                const container = document.getElementById('recent-activities');
+                if (notifications && Array.isArray(notifications) && notifications.length > 0) {
+                    const recent = notifications.slice(0, 5);
+                    container.innerHTML = recent.map(n => {
+                        const iconBg = n.notificationType === 'Leave' ? '#10b98115' : 
+                                       n.notificationType === 'Payroll' ? '#f59e0b15' : 
+                                       n.notificationType === 'Employee' ? '#2563eb15' : '#ef444415';
+                        const iconColor = n.notificationType === 'Leave' ? 'var(--success-color)' : 
+                                          n.notificationType === 'Payroll' ? 'var(--warning-color)' : 
+                                          n.notificationType === 'Employee' ? 'var(--primary-color)' : 'var(--danger-color)';
+                        const icon = n.notificationType === 'Leave' ? 'fa-calendar-check' : 
+                                     n.notificationType === 'Payroll' ? 'fa-money-bill' : 
+                                     n.notificationType === 'Employee' ? 'fa-user-plus' : 'fa-bell';
+                        return `
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: ${iconBg}; color: ${iconColor};">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <p style="margin: 0; font-weight: 600; color: var(--text-dark);">${n.title || 'Notification'}</p>
+                                    <small style="color: var(--text-light);">${n.message || ''}</small>
+                                    <br>
+                                    <small style="color: var(--text-light);">${n.createdAt ? formatDate(n.createdAt) : ''}</small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="text-center text-muted py-3">No recent activities</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load recent activities:', error);
+                document.getElementById('recent-activities').innerHTML = '<div class="text-center text-muted py-3">Failed to load activities</div>';
+            }
+
+            // Quick Actions based on role
+            const actionsContainer = document.getElementById('quick-actions');
+            let actions = '';
+            if (isAdminOrHRUser) {
+                actions += '<a href="/Employees" class="btn btn-primary w-100"><i class="fas fa-plus"></i> Add Employee</a>';
+                actions += '<a href="/Leaves" class="btn btn-outline-primary w-100"><i class="fas fa-calendar"></i> Manage Leaves</a>';
+                actions += '<a href="/Payrolls" class="btn btn-outline-primary w-100"><i class="fas fa-money-bill"></i> Payroll</a>';
+            }
+            actions += '<a href="/Attendances" class="btn btn-outline-primary w-100"><i class="fas fa-clock"></i> Attendance</a>';
+            actions += '<a href="/Home/Settings" class="btn btn-outline-primary w-100"><i class="fas fa-cog"></i> Settings</a>';
+            actionsContainer.innerHTML = actions;
         });
     </script>
 }

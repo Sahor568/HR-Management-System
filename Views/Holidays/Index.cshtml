@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Holiday>
-
 @{
     ViewData["Title"] = "Holidays Management";
 }
@@ -17,53 +15,6 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
-    }
-
-    .calendar-days {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 1rem;
-    }
-
-    .calendar-day {
-        aspect-ratio: 1;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-
-    .calendar-day:hover {
-        background: var(--light-bg);
-        border-color: var(--primary-color);
-    }
-
-    .calendar-day.holiday {
-        background: linear-gradient(135deg, #fef3c7 0%, #fbbf2415 100%);
-        border-color: var(--warning-color);
-    }
-
-    .calendar-day.today {
-        background: linear-gradient(135deg, #dbeafe 0%, #2563eb15 100%);
-        border-color: var(--primary-color);
-    }
-
-    .calendar-day-number {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: var(--text-dark);
-    }
-
-    .calendar-day-holiday {
-        font-size: 0.7rem;
-        color: var(--warning-color);
-        margin-top: 0.25rem;
     }
 
     .holiday-list {
@@ -157,6 +108,101 @@
         font-size: 0.85rem;
         font-weight: 600;
     }
+
+    .year-filter {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .year-filter select {
+        max-width: 150px;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: var(--light-bg);
+        border-radius: 8px;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-dialog {
+        background: var(--white);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-body-custom {
+        padding: 1.5rem;
+    }
+
+    .modal-footer-custom {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-light);
+    }
+
+    .close-btn:hover {
+        color: var(--text-dark);
+    }
 </style>
 
 <div class="page-header">
@@ -165,10 +211,22 @@
             <h1 class="page-title">Holidays Management</h1>
             <p class="page-subtitle">Manage public holidays and company holidays</p>
         </div>
-        <a href="#" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Holiday
-        </a>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline-primary" onclick="openBulkModal()">
+                <i class="fas fa-upload"></i> Bulk Import
+            </button>
+            <button class="btn btn-primary" onclick="openCreateModal()">
+                <i class="fas fa-plus"></i> Add Holiday
+            </button>
+        </div>
     </div>
+</div>
+
+<!-- Year Filter -->
+<div class="year-filter">
+    <label style="font-weight: 600; margin: 0;">Year:</label>
+    <select id="yearFilter" class="form-control" onchange="loadHolidays()">
+    </select>
 </div>
 
 <!-- Upcoming Holidays -->
@@ -176,131 +234,24 @@
     <h5 style="margin-top: 0;">
         <i class="fas fa-calendar-check"></i> Upcoming Holidays
     </h5>
-    <div class="holiday-row">
-        <div>
-            <div class="holiday-row-name">Labour Day</div>
-            <div class="holiday-row-date">May 1, 2026 (Wednesday)</div>
-        </div>
-        <div style="text-align: right;">
-            <div class="days-remaining">1 day away</div>
-        </div>
-    </div>
-    <div class="holiday-row">
-        <div>
-            <div class="holiday-row-name">Memorial Day</div>
-            <div class="holiday-row-date">May 25, 2026 (Monday)</div>
-        </div>
-        <div style="text-align: right;">
-            <div class="days-remaining">25 days away</div>
-        </div>
-    </div>
-    <div class="holiday-row">
-        <div>
-            <div class="holiday-row-name">Independence Day</div>
-            <div class="holiday-row-date">July 4, 2026 (Saturday)</div>
-        </div>
-        <div style="text-align: right;">
-            <div class="days-remaining">65 days away</div>
-        </div>
-    </div>
-    <div class="holiday-row">
-        <div>
-            <div class="holiday-row-name">Thanksgiving</div>
-            <div class="holiday-row-date">November 26, 2026 (Thursday)</div>
-        </div>
-        <div style="text-align: right;">
-            <div class="days-remaining">210 days away</div>
+    <div id="upcoming-holidays-list">
+        <div class="text-center" style="padding: 1rem;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Holiday Cards -->
 <h5 style="margin-bottom: 1.5rem;">
-    <i class="fas fa-list"></i> All Holidays
+    <i class="fas fa-list"></i> All Holidays <span id="holiday-count" class="badge bg-primary" style="font-size: 0.8rem;">0</span>
 </h5>
 
-<div class="holiday-list">
-    <!-- Holiday 1 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: var(--warning-color);">
-            <i class="fas fa-star"></i>
-        </div>
-        <div class="holiday-date">May 1, 2026</div>
-        <h6 class="holiday-name">Labour Day</h6>
-        <div class="holiday-day">Wednesday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-    </div>
-
-    <!-- Holiday 2 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: #e74c3c;">
-            <i class="fas fa-heart"></i>
-        </div>
-        <div class="holiday-date">May 25, 2026</div>
-        <h6 class="holiday-name">Memorial Day</h6>
-        <div class="holiday-day">Monday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-    </div>
-
-    <!-- Holiday 3 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: #3498db;">
-            <i class="fas fa-flag"></i>
-        </div>
-        <div class="holiday-date">July 4, 2026</div>
-        <h6 class="holiday-name">Independence Day</h6>
-        <div class="holiday-day">Saturday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-    </div>
-
-    <!-- Holiday 4 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: #e67e22;">
-            <i class="fas fa-leaf"></i>
-        </div>
-        <div class="holiday-date">November 26, 2026</div>
-        <h6 class="holiday-name">Thanksgiving</h6>
-        <div class="holiday-day">Thursday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-    </div>
-
-    <!-- Holiday 5 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: #27ae60;">
-            <i class="fas fa-snowflake"></i>
-        </div>
-        <div class="holiday-date">December 25, 2026</div>
-        <h6 class="holiday-name">Christmas Day</h6>
-        <div class="holiday-day">Friday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-    </div>
-
-    <!-- Holiday 6 -->
-    <div class="holiday-card">
-        <div class="holiday-icon" style="color: #2c3e50;">
-            <i class="fas fa-gift"></i>
-        </div>
-        <div class="holiday-date">January 1, 2027</div>
-        <h6 class="holiday-name">New Year's Day</h6>
-        <div class="holiday-day">Friday - National Holiday</div>
-        <div class="holiday-actions">
-            <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-            <button class="btn btn-sm btn-outline-danger">Delete</button>
+<div id="holiday-list" class="holiday-list">
+    <div class="text-center" style="padding: 2rem; grid-column: 1 / -1;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 </div>
@@ -313,23 +264,374 @@
         </h5>
     </div>
     <div class="card-body">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem;">12</div>
-                <div style="font-size: 0.9rem; color: var(--text-light);">Total Holidays</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--primary-color);" id="stat-total">0</div>
+                <div class="stat-label">Total Holidays</div>
             </div>
-            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--success-color); margin-bottom: 0.5rem;">8</div>
-                <div style="font-size: 0.9rem; color: var(--text-light);">National Holidays</div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--success-color);" id="stat-upcoming">0</div>
+                <div class="stat-label">Upcoming</div>
             </div>
-            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--warning-color); margin-bottom: 0.5rem;">4</div>
-                <div style="font-size: 0.9rem; color: var(--text-light);">Company Holidays</div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--warning-color);" id="stat-this-month">0</div>
+                <div class="stat-label">This Month</div>
             </div>
-            <div style="text-align: center; padding: 1rem; background: var(--light-bg); border-radius: 8px;">
-                <div style="font-size: 2rem; font-weight: 700; color: var(--danger-color); margin-bottom: 0.5rem;">15</div>
-                <div style="font-size: 0.9rem; color: var(--text-light);">Upcoming Days Off</div>
+            <div class="stat-item">
+                <div class="stat-value" style="color: var(--danger-color);" id="stat-past">0</div>
+                <div class="stat-label">Past Holidays</div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Create/Edit Holiday Modal -->
+<div class="modal-overlay" id="holidayModal">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5 id="holidayModalTitle">Add Holiday</h5>
+            <button class="close-btn" onclick="closeModal('holidayModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <form id="holidayForm">
+                <input type="hidden" id="holidayId" />
+                <div class="mb-3">
+                    <label for="holidayName" class="form-label">Holiday Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="holidayName" required placeholder="e.g., Independence Day" />
+                </div>
+                <div class="mb-3">
+                    <label for="holidayDate" class="form-label">Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="holidayDate" required />
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('holidayModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveHoliday()">
+                <i class="fas fa-save"></i> Save Holiday
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div class="modal-overlay" id="bulkModal">
+    <div class="modal-dialog">
+        <div class="modal-header-custom">
+            <h5>Bulk Import Holidays</h5>
+            <button class="close-btn" onclick="closeModal('bulkModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <p class="text-muted">Add multiple holidays at once. One holiday per line with format: <strong>Name, YYYY-MM-DD</strong></p>
+            <textarea id="bulkHolidays" class="form-control" rows="8" placeholder="New Year's Day, 2027-01-01&#10;Independence Day, 2027-07-04&#10;Christmas Day, 2027-12-25"></textarea>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('bulkModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveBulkHolidays()">
+                <i class="fas fa-upload"></i> Import Holidays
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+        <div class="modal-header-custom">
+            <h5>Confirm Delete</h5>
+            <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="modal-body-custom">
+            <p>Are you sure you want to delete <strong id="deleteHolidayName"></strong>?</p>
+            <p class="text-muted">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer-custom">
+            <button class="btn btn-outline-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allHolidays = [];
+        let deleteId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateYearFilter();
+            loadHolidays();
+        });
+
+        function populateYearFilter() {
+            const select = document.getElementById('yearFilter');
+            const currentYear = new Date().getFullYear();
+            select.innerHTML = '';
+            for (let y = currentYear - 1; y <= currentYear + 2; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === currentYear) opt.selected = true;
+                select.appendChild(opt);
+            }
+        }
+
+        async function loadHolidays() {
+            const year = document.getElementById('yearFilter').value;
+            try {
+                allHolidays = await HolidaysAPI.getAll();
+                // Filter by selected year
+                const filtered = allHolidays.filter(h => {
+                    const d = new Date(h.date);
+                    return d.getFullYear() === parseInt(year);
+                });
+                renderHolidays(filtered);
+                renderUpcoming(allHolidays);
+                renderStats(allHolidays);
+            } catch (error) {
+                console.error('Error loading holidays:', error);
+                document.getElementById('holiday-list').innerHTML = '<div class="text-center text-danger" style="grid-column:1/-1;padding:2rem;">Failed to load holidays.</div>';
+            }
+        }
+
+        function renderHolidays(holidays) {
+            const container = document.getElementById('holiday-list');
+            document.getElementById('holiday-count').textContent = holidays.length;
+
+            if (holidays.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted" style="grid-column:1/-1;padding:2rem;"><i class="fas fa-calendar-times" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>No holidays found for this year.</div>';
+                return;
+            }
+
+            // Sort by date
+            holidays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            container.innerHTML = holidays.map(h => {
+                const date = new Date(h.date);
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const isPast = date < new Date(new Date().toDateString());
+                const iconColor = getHolidayIconColor(h.name);
+                const icon = getHolidayIcon(h.name);
+
+                return `
+                    <div class="holiday-card" style="${isPast ? 'opacity: 0.6;' : ''}">
+                        <div class="holiday-icon" style="color: ${iconColor};">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="holiday-date">${formatDate(h.date)}</div>
+                        <h6 class="holiday-name">${escapeHtml(h.name)}</h6>
+                        <div class="holiday-day">${dayName}${isPast ? ' - Past' : ' - Holiday'}</div>
+                        <div class="holiday-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${h.id})">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${h.id}, '${escapeHtml(h.name)}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderUpcoming(holidays) {
+            const container = document.getElementById('upcoming-holidays-list');
+            const today = new Date(new Date().toDateString());
+            const upcoming = holidays
+                .filter(h => new Date(new Date(h.date).toDateString()) >= today)
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .slice(0, 5);
+
+            if (upcoming.length === 0) {
+                container.innerHTML = '<p class="text-muted" style="margin:0;">No upcoming holidays.</p>';
+                return;
+            }
+
+            container.innerHTML = upcoming.map(h => {
+                const date = new Date(h.date);
+                const diffTime = date - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                return `
+                    <div class="holiday-row">
+                        <div>
+                            <div class="holiday-row-name">${escapeHtml(h.name)}</div>
+                            <div class="holiday-row-date">${dateStr} (${dayName})</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="days-remaining">${diffDays === 0 ? 'Today!' : diffDays === 1 ? 'Tomorrow' : diffDays + ' days away'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStats(holidays) {
+            const today = new Date(new Date().toDateString());
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            document.getElementById('stat-total').textContent = holidays.length;
+            document.getElementById('stat-upcoming').textContent = holidays.filter(h => new Date(new Date(h.date).toDateString()) >= today).length;
+            document.getElementById('stat-this-month').textContent = holidays.filter(h => {
+                const d = new Date(h.date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            }).length;
+            document.getElementById('stat-past').textContent = holidays.filter(h => new Date(new Date(h.date).toDateString()) < today).length;
+        }
+
+        function getHolidayIcon(name) {
+            const n = (name || '').toLowerCase();
+            if (n.includes('christmas')) return 'fa-snowflake';
+            if (n.includes('new year')) return 'fa-gift';
+            if (n.includes('independence') || n.includes('national')) return 'fa-flag';
+            if (n.includes('thanksgiving')) return 'fa-leaf';
+            if (n.includes('memorial')) return 'fa-heart';
+            if (n.includes('labour') || n.includes('labor')) return 'fa-hard-hat';
+            if (n.includes('easter')) return 'fa-cross';
+            if (n.includes('diwali') || n.includes('festival')) return 'fa-fire';
+            if (n.includes('halloween')) return 'fa-ghost';
+            return 'fa-star';
+        }
+
+        function getHolidayIconColor(name) {
+            const n = (name || '').toLowerCase();
+            if (n.includes('christmas')) return '#27ae60';
+            if (n.includes('new year')) return '#2c3e50';
+            if (n.includes('independence') || n.includes('national')) return '#3498db';
+            if (n.includes('thanksgiving')) return '#e67e22';
+            if (n.includes('memorial')) return '#e74c3c';
+            if (n.includes('labour') || n.includes('labor')) return 'var(--warning-color)';
+            return 'var(--primary-color)';
+        }
+
+        function openCreateModal() {
+            document.getElementById('holidayModalTitle').textContent = 'Add Holiday';
+            document.getElementById('holidayId').value = '';
+            document.getElementById('holidayName').value = '';
+            // Pre-fill with today's date as default
+            document.getElementById('holidayDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('holidayModal').classList.add('active');
+        }
+
+        async function openEditModal(id) {
+            const holiday = allHolidays.find(h => h.id === id);
+            if (!holiday) return;
+
+            document.getElementById('holidayModalTitle').textContent = 'Edit Holiday';
+            document.getElementById('holidayId').value = holiday.id;
+            document.getElementById('holidayName').value = holiday.name;
+            document.getElementById('holidayDate').value = holiday.date.split('T')[0];
+            document.getElementById('holidayModal').classList.add('active');
+        }
+
+        async function saveHoliday() {
+            const id = document.getElementById('holidayId').value;
+            const name = document.getElementById('holidayName').value.trim();
+            const date = document.getElementById('holidayDate').value;
+
+            if (!name || !date) {
+                showNotification('Validation Error', 'Please fill in all required fields.', 'danger');
+                return;
+            }
+
+            try {
+                const data = { name, date };
+                if (id) {
+                    await HolidaysAPI.update(id, data);
+                    showNotification('Success', 'Holiday updated successfully!', 'success');
+                } else {
+                    await HolidaysAPI.create(data);
+                    showNotification('Success', 'Holiday created successfully!', 'success');
+                }
+                closeModal('holidayModal');
+                loadHolidays();
+            } catch (error) {
+                console.error('Error saving holiday:', error);
+                showNotification('Error', 'Failed to save holiday. ' + (error.message || 'Please check your permissions and try again.'), 'danger');
+            }
+        }
+
+        function openBulkModal() {
+            document.getElementById('bulkHolidays').value = '';
+            document.getElementById('bulkModal').classList.add('active');
+        }
+
+        async function saveBulkHolidays() {
+            const text = document.getElementById('bulkHolidays').value.trim();
+            if (!text) {
+                showNotification('Validation Error', 'Please enter holiday data.', 'danger');
+                return;
+            }
+
+            const lines = text.split('\n').filter(l => l.trim());
+            const holidays = [];
+
+            for (const line of lines) {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const name = parts[0].trim();
+                    const date = parts[1].trim();
+                    if (name && date) {
+                        holidays.push({ name, date });
+                    }
+                }
+            }
+
+            if (holidays.length === 0) {
+                showNotification('Validation Error', 'No valid holidays found. Use format: Name, YYYY-MM-DD', 'danger');
+                return;
+            }
+
+            try {
+                await HolidaysAPI.bulkCreate(holidays);
+                showNotification('Success', `${holidays.length} holidays imported successfully!`, 'success');
+                closeModal('bulkModal');
+                loadHolidays();
+            } catch (error) {
+                console.error('Error importing holidays:', error);
+                showNotification('Error', 'Failed to import holidays. ' + (error.message || 'Please check your permissions.'), 'danger');
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            deleteId = id;
+            document.getElementById('deleteHolidayName').textContent = name;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        async function confirmDelete() {
+            if (!deleteId) return;
+            try {
+                await HolidaysAPI.delete(deleteId);
+                showNotification('Success', 'Holiday deleted successfully!', 'success');
+                closeModal('deleteModal');
+                deleteId = null;
+                loadHolidays();
+            } catch (error) {
+                console.error('Error deleting holiday:', error);
+                showNotification('Error', 'Failed to delete holiday. ' + (error.message || 'Please check your permissions.'), 'danger');
+                closeModal('deleteModal');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+}

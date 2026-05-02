@@ -5,7 +5,7 @@
 <div class="container-fluid">
     <div class="page-header">
         <h1 class="page-title"><i class="fas fa-user me-2"></i>My Profile</h1>
-        <p class="page-subtitle">View and manage your personal information</p>
+        <p class="page-subtitle">View your personal information</p>
     </div>
     
     <div class="row">
@@ -14,27 +14,28 @@
                 <div class="card-body text-center">
                     <div class="mb-4">
                         <div class="avatar-profile mx-auto">
-                            <div class="avatar-initials">JD</div>
+                            <div class="avatar-initials" id="profile-initials">--</div>
                         </div>
-                        <h4 class="mt-3 mb-0">John Doe</h4>
-                        <p class="text-muted">Administrator</p>
-                        <button class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-camera me-1"></i>Change Photo
-                        </button>
+                        <h4 class="mt-3 mb-0" id="profile-name">Loading...</h4>
+                        <p class="text-muted" id="profile-role">-</p>
                     </div>
                     
                     <div class="list-group list-group-flush text-start">
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-envelope me-2 text-primary"></i>Email</span>
-                            <span class="text-muted">john.doe@example.com</span>
+                            <span class="text-muted" id="profile-email">-</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-phone me-2 text-primary"></i>Phone</span>
-                            <span class="text-muted">+1 234-567-8900</span>
+                            <span class="text-muted" id="profile-phone">-</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-calendar me-2 text-primary"></i>Joined</span>
-                            <span class="text-muted">Jan 15, 2026</span>
+                            <span><i class="fas fa-building me-2 text-primary"></i>Department</span>
+                            <span class="text-muted" id="profile-department">-</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-user-tie me-2 text-primary"></i>Supervisor</span>
+                            <span class="text-muted" id="profile-supervisor">-</span>
                         </div>
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-shield-alt me-2 text-primary"></i>Status</span>
@@ -48,22 +49,10 @@
                 <div class="card-header">
                     <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Quick Stats</h6>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Leave Balance</span>
-                        <strong>18 days</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Attendance Rate</span>
-                        <strong>96%</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Tasks Completed</span>
-                        <strong>42</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Performance Score</span>
-                        <strong class="text-success">4.8/5.0</strong>
+                <div class="card-body" id="quick-stats-body">
+                    <div class="text-center text-muted">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        <span class="ms-2">Loading stats...</span>
                     </div>
                 </div>
             </div>
@@ -80,10 +69,10 @@
                             <a class="nav-link" data-bs-toggle="tab" href="#employment">Employment</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#leaves">My Leaves</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#activity">Activity</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#payroll">Payroll</a>
                         </li>
                     </ul>
                 </div>
@@ -94,45 +83,33 @@
                             <form id="personalInfoForm">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">First Name</label>
-                                        <input type="text" class="form-control" value="John">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" id="edit-fullName" disabled>
+                                        <div class="form-text">Contact HR to update your name.</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" value="Doe">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="edit-email" disabled>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Date of Birth</label>
-                                        <input type="date" class="form-control" value="1990-05-15">
+                                        <label class="form-label">Phone</label>
+                                        <input type="tel" class="form-control" id="edit-phone" disabled>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Gender</label>
-                                        <select class="form-select">
-                                            <option selected>Male</option>
-                                            <option>Female</option>
-                                            <option>Other</option>
-                                        </select>
+                                        <label class="form-label">Age</label>
+                                        <input type="number" class="form-control" id="edit-age" disabled>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Address</label>
-                                    <textarea class="form-control" rows="3">123 Main Street, New York, NY 10001</textarea>
+                                    <textarea class="form-control" rows="3" id="edit-address" disabled></textarea>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Emergency Contact</label>
-                                        <input type="text" class="form-control" value="Jane Doe">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Emergency Phone</label>
-                                        <input type="tel" class="form-control" value="+1 234-567-8901">
-                                    </div>
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    To update your personal information, please go to <a href="/Home/Settings">Settings</a> or contact HR.
                                 </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i>Update Personal Info
-                                </button>
                             </form>
                         </div>
                         
@@ -140,38 +117,26 @@
                         <div class="tab-pane fade" id="employment">
                             <div class="table-responsive">
                                 <table class="table table-borderless">
-                                    <tbody>
+                                    <tbody id="employment-details">
                                         <tr>
                                             <th width="30%">Employee ID</th>
-                                            <td>EMP-2026-001</td>
+                                            <td id="emp-id">-</td>
                                         </tr>
                                         <tr>
                                             <th>Department</th>
-                                            <td>Information Technology</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Position</th>
-                                            <td>System Administrator</td>
+                                            <td id="emp-department">-</td>
                                         </tr>
                                         <tr>
                                             <th>Supervisor</th>
-                                            <td>Sarah Johnson</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Employment Type</th>
-                                            <td>Full-time</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Hire Date</th>
-                                            <td>January 15, 2026</td>
+                                            <td id="emp-supervisor">-</td>
                                         </tr>
                                         <tr>
                                             <th>Salary</th>
-                                            <td>$85,000/year</td>
+                                            <td id="emp-salary">-</td>
                                         </tr>
                                         <tr>
-                                            <th>Work Schedule</th>
-                                            <td>Monday-Friday, 9:00 AM - 5:00 PM</td>
+                                            <th>Role</th>
+                                            <td id="emp-role">-</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -182,117 +147,22 @@
                             </div>
                         </div>
                         
-                        <!-- Documents Tab -->
-                        <div class="tab-pane fade" id="documents">
-                            <div class="mb-4">
-                                <button class="btn btn-primary">
-                                    <i class="fas fa-upload me-2"></i>Upload Document
-                                </button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Document Name</th>
-                                            <th>Type</th>
-                                            <th>Upload Date</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><i class="fas fa-file-pdf text-danger me-2"></i>Employment Contract</td>
-                                            <td>Contract</td>
-                                            <td>Jan 15, 2026</td>
-                                            <td><span class="badge bg-success">Approved</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><i class="fas fa-file-image text-info me-2"></i>ID Proof</td>
-                                            <td>Identification</td>
-                                            <td>Jan 16, 2026</td>
-                                            <td><span class="badge bg-success">Approved</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><i class="fas fa-file-word text-primary me-2"></i>Resume</td>
-                                            <td>Resume</td>
-                                            <td>Jan 15, 2026</td>
-                                            <td><span class="badge bg-success">Approved</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><i class="fas fa-file-pdf text-danger me-2"></i>Tax Form W-4</td>
-                                            <td>Tax</td>
-                                            <td>Jan 20, 2026</td>
-                                            <td><span class="badge bg-warning">Pending</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- Leaves Tab -->
+                        <div class="tab-pane fade" id="leaves">
+                            <div id="my-leaves-container">
+                                <div class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                                    <span class="ms-2">Loading leaves...</span>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Activity Tab -->
-                        <div class="tab-pane fade" id="activity">
-                            <h6 class="mb-3">Recent Activity</h6>
-                            <div class="timeline">
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-primary"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Leave Request Submitted</h6>
-                                        <p class="text-muted mb-0">Submitted annual leave request for 5 days</p>
-                                        <small class="text-muted">2 hours ago</small>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-success"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Password Changed</h6>
-                                        <p class="text-muted mb-0">Successfully updated account password</p>
-                                        <small class="text-muted">1 day ago</small>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-info"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Profile Updated</h6>
-                                        <p class="text-muted mb-0">Updated personal contact information</p>
-                                        <small class="text-muted">3 days ago</small>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-warning"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Attendance Marked</h6>
-                                        <p class="text-muted mb-0">Marked attendance for the day</p>
-                                        <small class="text-muted">1 week ago</small>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-secondary"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Document Uploaded</h6>
-                                        <p class="text-muted mb-0">Uploaded updated resume</p>
-                                        <small class="text-muted">2 weeks ago</small>
-                                    </div>
+                        <!-- Payroll Tab -->
+                        <div class="tab-pane fade" id="payroll">
+                            <div id="my-payroll-container">
+                                <div class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                                    <span class="ms-2">Loading payroll...</span>
                                 </div>
                             </div>
                         </div>
@@ -320,70 +190,226 @@
         font-weight: bold;
         color: white;
     }
-    
-    .timeline {
-        position: relative;
-        padding-left: 30px;
-    }
-    
-    .timeline-item {
-        position: relative;
-        margin-bottom: 1.5rem;
-    }
-    
-    .timeline-marker {
-        position: absolute;
-        left: -30px;
-        top: 5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-    }
-    
-    .timeline-content {
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .timeline-item:last-child .timeline-content {
-        border-bottom: none;
-    }
 </style>
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Tab functionality
-            $('.nav-tabs a').on('click', function(e) {
-                e.preventDefault();
-                $(this).tab('show');
-            });
-            
-            // Personal info form submission
-            $('#personalInfoForm').on('submit', function(e) {
-                e.preventDefault();
-                showNotification('Success', 'Personal information updated successfully!', 'success');
-            });
-            
-            // Initialize tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip();
+        let currentEmployeeId = null;
+        let currentEmployeeData = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadProfile();
+            loadQuickStats();
         });
-        
-        function showNotification(title, message, type) {
-            // Create notification element
-            const notification = $(`
-                <div class="alert alert-${type} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                    <strong>${title}</strong> ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `);
-            
-            $('body').append(notification);
-            
-            // Auto remove after 5 seconds
-            setTimeout(() => {
-                notification.alert('close');
-            }, 5000);
+
+        async function loadProfile() {
+            try {
+                const data = await AuthAPI.getCurrentUser();
+                
+                // Update sidebar card
+                const fullName = data.employee?.fullName || data.email || 'User';
+                const role = data.role || 'Unknown';
+                const initials = getInitials(fullName);
+
+                document.getElementById('profile-initials').textContent = initials;
+                document.getElementById('profile-name').textContent = fullName;
+                document.getElementById('profile-role').textContent = role;
+                document.getElementById('profile-email').textContent = data.email || '-';
+                document.getElementById('profile-phone').textContent = data.employee?.phone || '-';
+                document.getElementById('profile-department').textContent = data.employee?.departmentName || '-';
+                document.getElementById('profile-supervisor').textContent = data.employee?.supervisorName || '-';
+
+                // Employment tab
+                document.getElementById('emp-id').textContent = data.employee?.id || '-';
+                document.getElementById('emp-department').textContent = data.employee?.departmentName || '-';
+                document.getElementById('emp-supervisor').textContent = data.employee?.supervisorName || '-';
+                document.getElementById('emp-salary').textContent = data.employee?.salary ? formatCurrency(data.employee.salary) : '-';
+                document.getElementById('emp-role').textContent = role;
+
+                // Personal info form
+                document.getElementById('edit-fullName').value = fullName;
+                document.getElementById('edit-email').value = data.email || '';
+                document.getElementById('edit-phone').value = data.employee?.phone || '';
+                document.getElementById('edit-age').value = data.employee?.age || '';
+                document.getElementById('edit-address').value = data.employee?.address || '';
+
+                currentEmployeeId = data.employee?.id || null;
+                currentEmployeeData = data;
+
+                // Load leaves and payroll for the tabs
+                if (currentEmployeeId) {
+                    loadMyLeaves();
+                    loadMyPayroll();
+                }
+
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+                document.getElementById('profile-name').textContent = 'Error loading profile';
+            }
+        }
+
+        async function loadQuickStats() {
+            const statsBody = document.getElementById('quick-stats-body');
+            try {
+                // Load leave stats
+                let leaveBalance = '-';
+                let pendingLeaves = 0;
+                let approvedLeaves = 0;
+                try {
+                    const leaves = await LeavesAPI.getMyLeaves();
+                    if (Array.isArray(leaves)) {
+                        pendingLeaves = leaves.filter(l => l.status === 'Pending').length;
+                        approvedLeaves = leaves.filter(l => l.status === 'Approved').length;
+                        const totalLeaves = leaves.length;
+                        leaveBalance = Math.max(0, 20 - totalLeaves) + ' days';
+                    }
+                } catch (e) { /* ignore */ }
+
+                // Load attendance stats
+                let attendanceRate = '-';
+                try {
+                    const empId = currentEmployeeId;
+                    if (empId) {
+                        const attendance = await AttendanceAPI.getByEmployee(empId);
+                        if (Array.isArray(attendance) && attendance.length > 0) {
+                            const presentCount = attendance.filter(a => a.status === 'Present').length;
+                            attendanceRate = Math.round((presentCount / attendance.length) * 100) + '%';
+                        }
+                    }
+                } catch (e) { /* ignore */ }
+
+                statsBody.innerHTML = `
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Leave Balance</span>
+                        <strong>${leaveBalance}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Pending Leaves</span>
+                        <strong class="text-warning">${pendingLeaves}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Approved Leaves</span>
+                        <strong class="text-success">${approvedLeaves}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Attendance Rate</span>
+                        <strong>${attendanceRate}</strong>
+                    </div>
+                `;
+            } catch (error) {
+                statsBody.innerHTML = '<p class="text-muted text-center">Could not load stats</p>';
+            }
+        }
+
+        async function loadMyLeaves() {
+            const container = document.getElementById('my-leaves-container');
+            try {
+                const leaves = await LeavesAPI.getMyLeaves();
+                if (!Array.isArray(leaves) || leaves.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                            <p>No leave records found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                leaves.forEach(leave => {
+                    const fromDate = new Date(leave.fromDate);
+                    const toDate = new Date(leave.toDate);
+                    const days = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
+                    html += `
+                        <tr>
+                            <td>${leave.leaveType || 'General'}</td>
+                            <td>${formatDate(leave.fromDate)}</td>
+                            <td>${formatDate(leave.toDate)}</td>
+                            <td>${days}</td>
+                            <td>${leave.reason || '-'}</td>
+                            <td><span class="badge ${getStatusBadgeClass(leave.status)}">${leave.status}</span></td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = '<p class="text-danger text-center">Failed to load leave records.</p>';
+            }
+        }
+
+        async function loadMyPayroll() {
+            const container = document.getElementById('my-payroll-container');
+            try {
+                const payrolls = await PayrollAPI.getByEmployee(currentEmployeeId);
+                if (!Array.isArray(payrolls) || payrolls.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                            <p>No payroll records found.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Month/Year</th>
+                                    <th>Basic Salary</th>
+                                    <th>Bonus</th>
+                                    <th>Deductions</th>
+                                    <th>Net Pay</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                payrolls.forEach(p => {
+                    const netPay = (p.basicSalary || 0) + (p.bonus || 0) - (p.deductions || 0);
+                    const monthYear = (p.month || '-') + '/' + (p.year || '-');
+                    const status = p.approvalStatus || p.status || 'Pending';
+                    html += `
+                        <tr>
+                            <td>${monthYear}</td>
+                            <td>${formatCurrency(p.basicSalary || 0)}</td>
+                            <td>${formatCurrency(p.bonus || 0)}</td>
+                            <td>${formatCurrency(p.deductions || 0)}</td>
+                            <td><strong>${formatCurrency(netPay)}</strong></td>
+                            <td><span class="badge ${getStatusBadgeClass(status)}">${status}</span></td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = '<p class="text-danger text-center">Failed to load payroll records.</p>';
+            }
+        }
+
+        function downloadPayslip(payrollId) {
+            // Payslip download feature - not yet implemented
+            showNotification('Info', 'Payslip download is not available yet. Contact HR for a copy.', 'info');
         }
     </script>
 }

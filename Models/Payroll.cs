@@ -15,5 +15,11 @@
         public decimal Deductions { get; set; }
 
         public decimal NetSalary { get; set; }
+
+        // Approval workflow for bonus/appraisal
+        public string ApprovalStatus { get; set; } = "Pending"; // Pending, Approved, Rejected
+        public string? ApprovalRemarks { get; set; }
+        public long? ApprovedBy { get; set; }
+        public DateTime? ApprovedAt { get; set; }
     }
 }

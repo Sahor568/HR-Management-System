@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Department>
-
 @{
     ViewData["Title"] = "Departments Management";
 }
@@ -84,36 +82,8 @@
         font-size: 0.85rem;
     }
 
-    .department-color-it {
-        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-    }
-
-    .department-color-hr {
-        background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);
-    }
-
-    .department-color-finance {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    }
-
-    .department-color-operations {
-        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    }
-
-    .department-color-sales {
-        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-    }
-
-    .department-color-marketing {
-        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-    }
-
     .department-list-view {
         margin-top: 2rem;
-    }
-
-    .list-table {
-        width: 100%;
     }
 
     .view-toggle {
@@ -137,17 +107,67 @@
         border-color: var(--primary-color);
     }
 
-    .employee-preview {
-        display: flex;
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1050;
+        justify-content: center;
         align-items: center;
-        gap: 0.75rem;
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--border-color);
     }
 
-    .employee-preview small {
-        color: var(--text-light);
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .color-palette {
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    }
+    .color-palette:nth-child(2n) {
+        background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);
+    }
+    .color-palette:nth-child(3n) {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+    .color-palette:nth-child(4n) {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+    .color-palette:nth-child(5n) {
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    }
+    .color-palette:nth-child(6n) {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
     }
 </style>
 
@@ -157,270 +177,24 @@
             <h1 class="page-title">Departments Management</h1>
             <p class="page-subtitle">Manage all departments in your organization</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openAddModal()">
             <i class="fas fa-plus"></i> Add Department
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- View Toggle -->
 <div class="view-toggle">
-    <button class="active" data-view="card">
+    <button class="active" data-view="card" onclick="switchView('card')">
         <i class="fas fa-th"></i> Card View
     </button>
-    <button data-view="list">
+    <button data-view="list" onclick="switchView('list')">
         <i class="fas fa-list"></i> List View
     </button>
 </div>
 
 <!-- Card View -->
-<div class="department-grid" id="card-view" style="display: grid;">
-    <!-- IT Department -->
-    <div class="department-card">
-        <div class="department-header department-color-it">
-            <div class="department-icon">
-                <i class="fas fa-laptop"></i>
-            </div>
-            <h3 class="department-name">IT Department</h3>
-        </div>
-        <div class="department-body">
-            <div class="dept-stat">
-                <label>Employees</label>
-                <span class="value">28</span>
-            </div>
-            <div class="dept-stat">
-                <label>Budget</label>
-                <span class="value">$850K</span>
-            </div>
-            <div class="dept-stat">
-                <label>Manager</label>
-                <span class="value">David Lee</span>
-            </div>
-            <div class="dept-stat">
-                <label>Status</label>
-                <span class="badge badge-success">Active</span>
-            </div>
-
-            <div class="employee-preview">
-                <small><strong>Team Members:</strong></small>
-                <div style="display: flex; gap: 0.25rem;">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="JD">JD</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="AP">AP</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="RS">RS</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+25</div>
-                </div>
-            </div>
-
-            <div class="dept-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- HR Department -->
-    <div class="department-card">
-        <div class="department-header department-color-hr">
-            <div class="department-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <h3 class="department-name">HR Department</h3>
-        </div>
-        <div class="department-body">
-            <div class="dept-stat">
-                <label>Employees</label>
-                <span class="value">15</span>
-            </div>
-            <div class="dept-stat">
-                <label>Budget</label>
-                <span class="value">$350K</span>
-            </div>
-            <div class="dept-stat">
-                <label>Manager</label>
-                <span class="value">Sarah Miller</span>
-            </div>
-            <div class="dept-stat">
-                <label>Status</label>
-                <span class="badge badge-success">Active</span>
-            </div>
-
-            <div class="employee-preview">
-                <small><strong>Team Members:</strong></small>
-                <div style="display: flex; gap: 0.25rem;">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="SM">SM</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #34d399 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="JK">JK</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+13</div>
-                </div>
-            </div>
-
-            <div class="dept-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Finance Department -->
-    <div class="department-card">
-        <div class="department-header department-color-finance">
-            <div class="department-icon">
-                <i class="fas fa-calculator"></i>
-            </div>
-            <h3 class="department-name">Finance Department</h3>
-        </div>
-        <div class="department-body">
-            <div class="dept-stat">
-                <label>Employees</label>
-                <span class="value">22</span>
-            </div>
-            <div class="dept-stat">
-                <label>Budget</label>
-                <span class="value">$650K</span>
-            </div>
-            <div class="dept-stat">
-                <label>Manager</label>
-                <span class="value">Robert Johnson</span>
-            </div>
-            <div class="dept-stat">
-                <label>Status</label>
-                <span class="badge badge-success">Active</span>
-            </div>
-
-            <div class="employee-preview">
-                <small><strong>Team Members:</strong></small>
-                <div style="display: flex; gap: 0.25rem;">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="RJ">RJ</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="LC">LC</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+20</div>
-                </div>
-            </div>
-
-            <div class="dept-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Operations Department -->
-    <div class="department-card">
-        <div class="department-header department-color-operations">
-            <div class="department-icon">
-                <i class="fas fa-cogs"></i>
-            </div>
-            <h3 class="department-name">Operations</h3>
-        </div>
-        <div class="department-body">
-            <div class="dept-stat">
-                <label>Employees</label>
-                <span class="value">18</span>
-            </div>
-            <div class="dept-stat">
-                <label>Budget</label>
-                <span class="value">$520K</span>
-            </div>
-            <div class="dept-stat">
-                <label>Manager</label>
-                <span class="value">Emma Johnson</span>
-            </div>
-            <div class="dept-stat">
-                <label>Status</label>
-                <span class="badge badge-success">Active</span>
-            </div>
-
-            <div class="employee-preview">
-                <small><strong>Team Members:</strong></small>
-                <div style="display: flex; gap: 0.25rem;">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="EJ">EJ</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="MK">MK</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+16</div>
-                </div>
-            </div>
-
-            <div class="dept-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sales Department -->
-    <div class="department-card">
-        <div class="department-header department-color-sales">
-            <div class="department-icon">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <h3 class="department-name">Sales</h3>
-        </div>
-        <div class="department-body">
-            <div class="dept-stat">
-                <label>Employees</label>
-                <span class="value">25</span>
-            </div>
-            <div class="dept-stat">
-                <label>Budget</label>
-                <span class="value">$720K</span>
-            </div>
-            <div class="dept-stat">
-                <label>Manager</label>
-                <span class="value">Thomas Wilson</span>
-            </div>
-            <div class="dept-stat">
-                <label>Status</label>
-                <span class="badge badge-success">Active</span>
-            </div>
-
-            <div class="employee-preview">
-                <small><strong>Team Members:</strong></small>
-                <div style="display: flex; gap: 0.25rem;">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="TW">TW</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 600;" title="LL">LL</div>
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: var(--text-dark); font-size: 0.6rem; font-weight: 600;">+23</div>
-                </div>
-            </div>
-
-            <div class="dept-actions">
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <a href="#" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                <button class="btn btn-sm btn-outline-danger">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="department-grid" id="card-view"></div>
 
 <!-- List View Table (Hidden by default) -->
 <div id="list-view" style="display: none;">
@@ -431,87 +205,208 @@
                     <thead>
                         <tr>
                             <th>Department Name</th>
-                            <th>Manager</th>
                             <th>Employees</th>
-                            <th>Budget</th>
-                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>IT Department</strong></td>
-                            <td>David Lee</td>
-                            <td>28</td>
-                            <td>$850,000</td>
-                            <td><span class="badge badge-success">Active</span></td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>HR Department</strong></td>
-                            <td>Sarah Miller</td>
-                            <td>15</td>
-                            <td>$350,000</td>
-                            <td><span class="badge badge-success">Active</span></td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Finance Department</strong></td>
-                            <td>Robert Johnson</td>
-                            <td>22</td>
-                            <td>$650,000</td>
-                            <td><span class="badge badge-success">Active</span></td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Operations</strong></td>
-                            <td>Emma Johnson</td>
-                            <td>18</td>
-                            <td>$520,000</td>
-                            <td><span class="badge badge-success">Active</span></td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><strong>Sales</strong></td>
-                            <td>Thomas Wilson</td>
-                            <td>25</td>
-                            <td>$720,000</td>
-                            <td><span class="badge badge-success">Active</span></td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="dept-table-body"></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Add/Edit Department Modal -->
+<div class="modal-overlay" id="deptModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h5 id="deptModalTitle" style="margin:0;">Add Department</h5>
+            <button onclick="closeModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="deptId">
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Department Name <span style="color:red;">*</span></label>
+                <input type="text" class="form-control" id="deptName" placeholder="Enter department name" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveDepartment()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+            <h5 style="margin:0;color:var(--danger-color);">Confirm Delete</h5>
+            <button onclick="closeDeleteModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete <strong id="deleteDeptName"></strong>?</p>
+            <p style="color:var(--text-light);font-size:0.9rem;">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const view = this.dataset.view;
-                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+        let departments = [];
+        let deleteId = null;
 
-                document.getElementById('card-view').style.display = view === 'card' ? 'grid' : 'none';
-                document.getElementById('list-view').style.display = view === 'list' ? 'block' : 'none';
-            });
-        });
+        const deptIcons = {
+            'it': 'fa-laptop', 'hr': 'fa-users', 'finance': 'fa-calculator',
+            'operations': 'fa-cogs', 'sales': 'fa-chart-line', 'marketing': 'fa-bullhorn',
+            'default': 'fa-building'
+        };
+
+        function getDeptIcon(name) {
+            const lower = (name || '').toLowerCase();
+            for (const [key, icon] of Object.entries(deptIcons)) {
+                if (lower.includes(key)) return icon;
+            }
+            return deptIcons.default;
+        }
+
+        async function loadDepartments() {
+            try {
+                departments = await DepartmentsAPI.getAll();
+                renderDepartments();
+            } catch (e) {
+                document.getElementById('card-view').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);"><i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:1rem;display:block;"></i>Failed to load departments</div>';
+            }
+        }
+
+        function renderDepartments() {
+            const cardView = document.getElementById('card-view');
+            const tableBody = document.getElementById('dept-table-body');
+
+            if (!departments || departments.length === 0) {
+                cardView.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-light);grid-column:1/-1;"><i class="fas fa-folder-open" style="font-size:3rem;margin-bottom:1rem;display:block;"></i><h4>No Departments Found</h4><p>Create your first department to get started.</p></div>';
+                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-light);">No departments found</td></tr>';
+                return;
+            }
+
+            cardView.innerHTML = departments.map((dept, i) => {
+                const empCount = dept.employeeCount || dept.employees?.length || 0;
+                const icon = getDeptIcon(dept.name);
+                return `
+                <div class="department-card">
+                    <div class="department-header color-palette">
+                        <div class="department-icon"><i class="fas ${icon}"></i></div>
+                        <h3 class="department-name">${dept.name}</h3>
+                    </div>
+                    <div class="department-body">
+                        <div class="dept-stat">
+                            <label>Employees</label>
+                            <span class="value">${empCount}</span>
+                        </div>
+                        <div class="dept-stat">
+                            <label>Status</label>
+                            <span class="badge badge-success">Active</span>
+                        </div>
+                        <div class="dept-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${dept.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${dept.id}, '${dept.name.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            tableBody.innerHTML = departments.map(dept => {
+                const empCount = dept.employeeCount || dept.employees?.length || 0;
+                return `
+                <tr>
+                    <td><strong>${dept.name}</strong></td>
+                    <td>${empCount}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${dept.id})">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal(${dept.id}, '${dept.name.replace(/'/g, "\\'")}')">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+            document.getElementById('card-view').style.display = view === 'card' ? 'grid' : 'none';
+            document.getElementById('list-view').style.display = view === 'list' ? 'block' : 'none';
+        }
+
+        function openAddModal() {
+            document.getElementById('deptId').value = '';
+            document.getElementById('deptName').value = '';
+            document.getElementById('deptModalTitle').textContent = 'Add Department';
+            document.getElementById('deptModal').classList.add('active');
+        }
+
+        function openEditModal(id) {
+            const dept = departments.find(d => d.id === id);
+            if (!dept) return;
+            document.getElementById('deptId').value = dept.id;
+            document.getElementById('deptName').value = dept.name;
+            document.getElementById('deptModalTitle').textContent = 'Edit Department';
+            document.getElementById('deptModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('deptModal').classList.remove('active');
+        }
+
+        async function saveDepartment() {
+            const id = document.getElementById('deptId').value;
+            const name = document.getElementById('deptName').value.trim();
+            if (!name) { showNotification('Validation Error', 'Department name is required', 'danger'); return; }
+
+            try {
+                if (id) {
+                    await DepartmentsAPI.update(id, { id: parseInt(id), name });
+                    showNotification('Success', 'Department updated successfully', 'success');
+                } else {
+                    await DepartmentsAPI.create({ name });
+                    showNotification('Success', 'Department created successfully', 'success');
+                }
+                closeModal();
+                await loadDepartments();
+            } catch (e) {
+                showNotification('Error', 'Failed to save department: ' + e.message, 'danger');
+            }
+        }
+
+        function openDeleteModal(id, name) {
+            deleteId = id;
+            document.getElementById('deleteDeptName').textContent = name;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteId = null;
+        }
+
+        async function confirmDelete() {
+            if (!deleteId) return;
+            try {
+                await DepartmentsAPI.delete(deleteId);
+                showNotification('Success', 'Department deleted successfully', 'success');
+                closeDeleteModal();
+                await loadDepartments();
+            } catch (e) {
+                showNotification('Error', 'Failed to delete department: ' + e.message, 'danger');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDepartments);
     </script>
 }

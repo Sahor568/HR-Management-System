@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Payroll>
-
 @{
     ViewData["Title"] = "Payroll Management";
 }
@@ -48,55 +46,6 @@
     .payroll-filter input {
         flex: 1;
         min-width: 150px;
-    }
-
-    .payroll-table {
-        width: 100%;
-        margin-bottom: 2rem;
-    }
-
-    .payroll-breakdown {
-        background: var(--white);
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        margin-bottom: 2rem;
-    }
-
-    .breakdown-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        background: var(--light-bg);
-        border-radius: 12px 12px 0 0;
-    }
-
-    .breakdown-content {
-        padding: 1.5rem;
-    }
-
-    .salary-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .salary-row:last-child {
-        border-bottom: none;
-    }
-
-    .salary-row.total {
-        background: var(--light-bg);
-        padding: 1rem;
-        margin: 0 -1.5rem;
-        padding: 1rem 1.5rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-    }
-
-    .salary-label {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
     }
 
     .employee-payroll-item {
@@ -184,6 +133,34 @@
         background: linear-gradient(135deg, #1e40af 0%, #0284c7 100%);
         color: white;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .avatar-colors {
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    }
 </style>
 
 <div class="page-header">
@@ -192,250 +169,606 @@
             <h1 class="page-title">Payroll Management</h1>
             <p class="page-subtitle">Manage employee salaries and payroll processing</p>
         </div>
-        <button class="btn generate-payroll-btn">
-            <i class="fas fa-cog"></i> Generate Payroll
-        </button>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline-primary" id="btn-create-payroll">
+                <i class="fas fa-plus"></i> Add Payroll
+            </button>
+            <button class="btn generate-payroll-btn" id="btn-generate-payroll">
+                <i class="fas fa-cog"></i> Generate Payroll
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Payroll Period Selection -->
 <div class="payroll-filter">
-    <select class="form-control" style="max-width: 150px;">
-        <option selected>January</option>
-        <option>February</option>
-        <option>March</option>
-        <option>April</option>
-        <option>May</option>
-        <option>June</option>
+    <select class="form-control" id="filter-month" style="max-width: 150px;">
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
     </select>
-    <select class="form-control" style="max-width: 150px;">
-        <option selected>2026</option>
-        <option>2025</option>
-        <option>2024</option>
-    </select>
-    <button class="btn btn-outline-primary">
-        <i class="fas fa-download"></i> Export
+    <select class="form-control" id="filter-year" style="max-width: 150px;"></select>
+    <button class="btn btn-primary" id="btn-filter">
+        <i class="fas fa-search"></i> Filter
     </button>
-    <button class="btn btn-outline-primary">
-        <i class="fas fa-print"></i> Print
+    <button class="btn btn-outline-secondary" id="btn-clear-filter">
+        <i class="fas fa-times"></i> Clear
     </button>
 </div>
 
 <!-- Payroll Summary -->
-<div class="payroll-summary">
+<div class="payroll-summary" id="payroll-summary">
     <div class="summary-card">
         <div class="summary-icon"><i class="fas fa-users"></i></div>
         <div class="summary-label">Total Employees</div>
-        <div class="summary-value">156</div>
+        <div class="summary-value" id="stat-employees">0</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon"><i class="fas fa-wallet"></i></div>
         <div class="summary-label">Total Basic Salary</div>
-        <div class="summary-value">$485K</div>
+        <div class="summary-value" id="stat-basic">$0</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon"><i class="fas fa-gift"></i></div>
         <div class="summary-label">Total Bonus</div>
-        <div class="summary-value">$45K</div>
+        <div class="summary-value" id="stat-bonus">$0</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon"><i class="fas fa-scissors"></i></div>
         <div class="summary-label">Total Deductions</div>
-        <div class="summary-value">$32K</div>
+        <div class="summary-value" id="stat-deductions">$0</div>
     </div>
     <div class="summary-card">
         <div class="summary-icon"><i class="fas fa-money-bill-wave"></i></div>
         <div class="summary-label">Net Payroll</div>
-        <div class="summary-value" style="color: var(--success-color);">$498K</div>
+        <div class="summary-value" style="color: var(--success-color);" id="stat-net">$0</div>
     </div>
 </div>
 
-<!-- Overall Payroll Breakdown -->
-<div class="payroll-breakdown">
-    <div class="breakdown-header">
-        <h5 style="margin: 0;">
-            <i class="fas fa-chart-bar"></i> Overall Payroll Breakdown
-        </h5>
-    </div>
-    <div class="breakdown-content">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-            <!-- Left Column -->
-            <div>
-                <div class="breakdown-item">
-                    <label>Basic Salary</label>
-                    <div class="value">$485,000</div>
-                </div>
-                <div class="breakdown-item">
-                    <label>Bonus</label>
-                    <div class="value">$45,000</div>
-                </div>
-                <div class="breakdown-item">
-                    <label>Allowances</label>
-                    <div class="value">$12,500</div>
-                </div>
-                <div style="border-top: 2px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
-                    <div class="breakdown-item" style="font-weight: 700; font-size: 1.1rem;">
-                        <label>Gross Salary</label>
-                        <div class="value">$542,500</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div>
-                <div class="breakdown-item">
-                    <label>Tax Deduction</label>
-                    <div class="value" style="color: var(--danger-color);">-$32,000</div>
-                </div>
-                <div class="breakdown-item">
-                    <label>Social Security</label>
-                    <div class="value" style="color: var(--danger-color);">-$8,500</div>
-                </div>
-                <div class="breakdown-item">
-                    <label>Other Deductions</label>
-                    <div class="value" style="color: var(--danger-color);">-$4,000</div>
-                </div>
-                <div style="border-top: 2px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
-                    <div class="breakdown-item" style="font-weight: 700; font-size: 1.1rem;">
-                        <label>Net Payroll</label>
-                        <div class="value" style="color: var(--success-color);">$498,000</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Individual Employee Payroll -->
+<!-- Employee Payroll List -->
 <h5 style="margin-bottom: 1.5rem;">
     <i class="fas fa-list"></i> Employee Payroll Details
 </h5>
 
-<!-- Employee 1 -->
-<div class="employee-payroll-item">
-    <div class="payroll-employee-header">
-        <div class="payroll-employee-info">
-            <div class="payroll-employee-avatar" style="background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);">JD</div>
-            <div class="payroll-employee-details">
-                <h5>John Doe</h5>
-                <p>IT Department - Senior Developer</p>
-            </div>
-        </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Net Salary</div>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">$3,200</div>
-        </div>
-    </div>
-
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Basic Salary</label>
-            <span class="value">$3,100</span>
-        </div>
-        <div class="breakdown-item">
-            <label>Bonus</label>
-            <span class="value">$300</span>
-        </div>
-    </div>
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Deductions</label>
-            <span class="value" style="color: var(--danger-color);">-$200</span>
-        </div>
-        <div class="breakdown-item">
-            <label>Status</label>
-            <span class="badge badge-success">Processed</span>
-        </div>
+<div id="payroll-list">
+    <div class="text-center" style="padding: 3rem;">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Loading payroll data...</p>
     </div>
 </div>
 
-<!-- Employee 2 -->
-<div class="employee-payroll-item">
-    <div class="payroll-employee-header">
-        <div class="payroll-employee-info">
-            <div class="payroll-employee-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059e0a 100%);">SM</div>
-            <div class="payroll-employee-details">
-                <h5>Sarah Miller</h5>
-                <p>HR Department - HR Manager</p>
-            </div>
-        </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Net Salary</div>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">$2,450</div>
-        </div>
-    </div>
+<div id="no-payrolls" style="display: none;" class="text-center" style="padding: 3rem;">
+    <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-light); opacity: 0.3;"></i>
+    <p class="mt-2 text-muted">No payroll records found for the selected period.</p>
+</div>
 
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Basic Salary</label>
-            <span class="value">$2,500</span>
+<!-- Create Payroll Modal -->
+<div class="modal-overlay" id="create-payroll-modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0;"><i class="fas fa-plus-circle"></i> Add Payroll</h4>
+            <button class="btn-close-modal" onclick="closeModal('create-payroll-modal')">&times;</button>
         </div>
-        <div class="breakdown-item">
-            <label>Bonus</label>
-            <span class="value">$200</span>
-        </div>
-    </div>
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Deductions</label>
-            <span class="value" style="color: var(--danger-color);">-$250</span>
-        </div>
-        <div class="breakdown-item">
-            <label>Status</label>
-            <span class="badge badge-success">Processed</span>
-        </div>
+        <form id="create-payroll-form">
+            <div class="mb-3">
+                <label class="form-label">Employee</label>
+                <select class="form-control" id="payroll-employee" required>
+                    <option value="">Select Employee...</option>
+                </select>
+            </div>
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Month</label>
+                    <select class="form-control" id="payroll-month" required>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Year</label>
+                    <input type="number" class="form-control" id="payroll-year" min="2000" max="2100" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Basic Salary</label>
+                <input type="number" class="form-control" id="payroll-basic" step="0.01" min="0" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bonus</label>
+                <input type="number" class="form-control" id="payroll-bonus" step="0.01" min="0" value="0">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Deductions</label>
+                <input type="number" class="form-control" id="payroll-deductions" step="0.01" min="0" value="0">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Net Salary</label>
+                <input type="number" class="form-control" id="payroll-net" readonly>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline-secondary" onclick="closeModal('create-payroll-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Payroll</button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Employee 3 -->
-<div class="employee-payroll-item">
-    <div class="payroll-employee-header">
-        <div class="payroll-employee-info">
-            <div class="payroll-employee-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MB</div>
-            <div class="payroll-employee-details">
-                <h5>Mike Brown</h5>
-                <p>Finance Department - Financial Analyst</p>
+<!-- Generate Payroll Modal -->
+<div class="modal-overlay" id="generate-payroll-modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0;"><i class="fas fa-cog"></i> Generate Payroll</h4>
+            <button class="btn-close-modal" onclick="closeModal('generate-payroll-modal')">&times;</button>
+        </div>
+        <form id="generate-payroll-form">
+            <div class="mb-3">
+                <label class="form-label">Month</label>
+                <select class="form-control" id="generate-month" required>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
             </div>
-        </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Net Salary</div>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">$2,100</div>
-        </div>
-    </div>
-
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Basic Salary</label>
-            <span class="value">$2,200</span>
-        </div>
-        <div class="breakdown-item">
-            <label>Bonus</label>
-            <span class="value">$150</span>
-        </div>
-    </div>
-    <div class="salary-breakdown-row">
-        <div class="breakdown-item">
-            <label>Deductions</label>
-            <span class="value" style="color: var(--danger-color);">-$250</span>
-        </div>
-        <div class="breakdown-item">
-            <label>Status</label>
-            <span class="badge badge-success">Processed</span>
-        </div>
+            <div class="mb-3">
+                <label class="form-label">Year</label>
+                <input type="number" class="form-control" id="generate-year" min="2000" max="2100" required>
+            </div>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> This will generate payroll records for all employees based on their salary and attendance data.
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline-secondary" onclick="closeModal('generate-payroll-modal')">Cancel</button>
+                <button type="submit" class="btn generate-payroll-btn"><i class="fas fa-cog"></i> Generate</button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Pagination -->
-<nav aria-label="Page navigation" style="margin-top: 2rem;">
-    <ul class="pagination justify-content-center">
-        <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1">Previous</a>
-        </li>
-        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-        </li>
-    </ul>
-</nav>
+<!-- Approve Bonus Modal -->
+<div class="modal-overlay" id="approve-bonus-modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h4 style="margin: 0;"><i class="fas fa-check-circle"></i> Approve Bonus</h4>
+            <button class="btn-close-modal" onclick="closeModal('approve-bonus-modal')">&times;</button>
+        </div>
+        <form id="approve-bonus-form">
+            <input type="hidden" id="approve-payroll-id">
+            <div class="mb-3">
+                <label class="form-label">Employee</label>
+                <input type="text" class="form-control" id="approve-employee-name" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Bonus Amount</label>
+                <input type="text" class="form-control" id="approve-bonus-amount" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Approval Remarks</label>
+                <textarea class="form-control" id="approve-remarks" rows="3" placeholder="Enter approval remarks..."></textarea>
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline-danger" id="btn-reject-bonus"><i class="fas fa-times"></i> Reject</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Approve</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allPayrolls = [];
+        let allEmployees = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            initYearSelectors();
+            setCurrentMonthYear();
+            await loadEmployees();
+            await loadPayrolls();
+            bindEvents();
+        });
+
+        function initYearSelectors() {
+            const currentYear = new Date().getFullYear();
+            const yearSelects = ['filter-year', 'payroll-year', 'generate-year'];
+            yearSelects.forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = '';
+                for (let y = currentYear + 1; y >= currentYear - 5; y--) {
+                    sel.innerHTML += `<option value="${y}">${y}</option>`;
+                }
+            });
+        }
+
+        function setCurrentMonthYear() {
+            const now = new Date();
+            document.getElementById('filter-month').value = now.getMonth() + 1;
+            document.getElementById('filter-year').value = now.getFullYear();
+            document.getElementById('payroll-month').value = now.getMonth() + 1;
+            document.getElementById('payroll-year').value = now.getFullYear();
+            document.getElementById('generate-month').value = now.getMonth() + 1;
+            document.getElementById('generate-year').value = now.getFullYear();
+        }
+
+        async function loadEmployees() {
+            try {
+                allEmployees = await EmployeesAPI.getAll();
+                const sel = document.getElementById('payroll-employee');
+                sel.innerHTML = '<option value="">Select Employee...</option>';
+                allEmployees.forEach(emp => {
+                    sel.innerHTML += `<option value="${emp.id}" data-salary="${emp.salary || 0}">${emp.fullName} - ${emp.department?.name || 'N/A'}</option>`;
+                });
+            } catch (e) {
+                console.error('Error loading employees:', e);
+            }
+        }
+
+        async function loadPayrolls(month, year) {
+            const listEl = document.getElementById('payroll-list');
+            const noEl = document.getElementById('no-payrolls');
+            listEl.style.display = '';
+            noEl.style.display = 'none';
+            listEl.innerHTML = '<div class="text-center" style="padding: 3rem;"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading payroll data...</p></div>';
+
+            try {
+                if (isEmployee()) {
+                    // Employees always use their own payroll endpoint (prevents 403)
+                    const empId = getUserEmployeeId();
+                    if (empId) {
+                        let payrolls = await PayrollAPI.getByEmployee(empId);
+                        // Apply month/year filter client-side
+                        if (month && year) {
+                            payrolls = payrolls.filter(p => p.month == month && p.year == year);
+                        }
+                        allPayrolls = payrolls;
+                    } else {
+                        allPayrolls = [];
+                    }
+                } else if (month && year) {
+                    allPayrolls = await apiRequest(`/api/Payrolls?month=${month}&year=${year}`);
+                } else {
+                    allPayrolls = await PayrollAPI.getAll();
+                }
+
+                updateSummary();
+                renderPayrolls();
+            } catch (e) {
+                console.error('Error loading payrolls:', e);
+                listEl.innerHTML = '<div class="text-center text-danger" style="padding: 3rem;"><i class="fas fa-exclamation-triangle" style="font-size: 2rem;"></i><p class="mt-2">Failed to load payroll data.</p></div>';
+            }
+        }
+
+        function updateSummary() {
+            const totalEmployees = allPayrolls.length;
+            const totalBasic = allPayrolls.reduce((s, p) => s + (p.basicSalary || 0), 0);
+            const totalBonus = allPayrolls.reduce((s, p) => s + (p.bonus || 0), 0);
+            const totalDeductions = allPayrolls.reduce((s, p) => s + (p.deductions || 0), 0);
+            const totalNet = allPayrolls.reduce((s, p) => s + (p.netSalary || 0), 0);
+
+            document.getElementById('stat-employees').textContent = totalEmployees;
+            document.getElementById('stat-basic').textContent = formatCurrency(totalBasic);
+            document.getElementById('stat-bonus').textContent = formatCurrency(totalBonus);
+            document.getElementById('stat-deductions').textContent = formatCurrency(totalDeductions);
+            document.getElementById('stat-net').textContent = formatCurrency(totalNet);
+        }
+
+        function renderPayrolls() {
+            const listEl = document.getElementById('payroll-list');
+            const noEl = document.getElementById('no-payrolls');
+
+            if (allPayrolls.length === 0) {
+                listEl.style.display = 'none';
+                noEl.style.display = '';
+                return;
+            }
+
+            noEl.style.display = 'none';
+            listEl.style.display = '';
+
+            const colors = ['#2563eb,#0ea5e9', '#10b981,#059e0a', '#f59e0b,#d97706', '#8b5cf6,#7c3aed', '#ec4899,#db2777', '#06b6d4,#0891b2'];
+
+            let html = '';
+            allPayrolls.forEach((p, i) => {
+                const empName = p.employee?.fullName || 'Unknown';
+                const dept = p.employee?.department?.name || 'N/A';
+                const initials = getInitials(empName);
+                const colorPair = colors[i % colors.length];
+                const statusBadge = getStatusBadge(p.approvalStatus || 'Approved');
+                const monthName = getMonthName(p.month);
+
+                html += `
+                <div class="employee-payroll-item">
+                    <div class="payroll-employee-header">
+                        <div class="payroll-employee-info">
+                            <div class="payroll-employee-avatar" style="background: linear-gradient(135deg, ${colorPair});">${initials}</div>
+                            <div class="payroll-employee-details">
+                                <h5>${empName}</h5>
+                                <p>${dept} &bull; ${monthName} ${p.year}</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Net Salary</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">${formatCurrency(p.netSalary)}</div>
+                        </div>
+                    </div>
+                    <div class="salary-breakdown-row">
+                        <div class="breakdown-item">
+                            <label>Basic Salary</label>
+                            <span class="value">${formatCurrency(p.basicSalary)}</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <label>Bonus</label>
+                            <span class="value" style="color: var(--success-color);">+${formatCurrency(p.bonus || 0)}</span>
+                        </div>
+                    </div>
+                    <div class="salary-breakdown-row">
+                        <div class="breakdown-item">
+                            <label>Deductions</label>
+                            <span class="value" style="color: var(--danger-color);">-${formatCurrency(p.deductions || 0)}</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <label>Status</label>
+                            <span class="badge ${statusBadge}">${p.approvalStatus || 'Approved'}</span>
+                        </div>
+                    </div>
+                    ${isAdmin() && p.approvalStatus === 'Pending' && p.bonus > 0 ? `
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem;">
+                        <button class="btn btn-sm btn-success" onclick="openApproveBonus(${p.id}, '${empName}', ${p.bonus})"><i class="fas fa-check"></i> Approve Bonus</button>
+                    </div>` : ''}
+                    <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                        <button class="btn btn-sm btn-outline-primary" onclick="printPayslip(${p.id})"><i class="fas fa-file-download"></i> Download Payslip</button>
+                        ${isAdminOrHR() ? `<button class="btn btn-sm btn-outline-danger" onclick="deletePayroll(${p.id})"><i class="fas fa-trash"></i> Delete</button>` : ''}
+                    </div>
+                </div>`;
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        function getStatusBadge(status) {
+            switch ((status || '').toLowerCase()) {
+                case 'approved': return 'badge-success';
+                case 'pending': return 'badge-warning';
+                case 'rejected': return 'badge-danger';
+                default: return 'badge-info';
+            }
+        }
+
+        function getMonthName(month) {
+            const months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            return months[month] || '';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function openApproveBonus(payrollId, empName, bonus) {
+            document.getElementById('approve-payroll-id').value = payrollId;
+            document.getElementById('approve-employee-name').value = empName;
+            document.getElementById('approve-bonus-amount').value = formatCurrency(bonus);
+            document.getElementById('approve-remarks').value = '';
+            openModal('approve-bonus-modal');
+        }
+
+        function bindEvents() {
+            // Filter
+            document.getElementById('btn-filter').addEventListener('click', function() {
+                const month = document.getElementById('filter-month').value;
+                const year = document.getElementById('filter-year').value;
+                loadPayrolls(month, year);
+            });
+
+            document.getElementById('btn-clear-filter').addEventListener('click', function() {
+                setCurrentMonthYear();
+                loadPayrolls();
+            });
+
+            // Create payroll
+            document.getElementById('btn-create-payroll').addEventListener('click', function() {
+                if (isEmployee()) return;
+                document.getElementById('create-payroll-form').reset();
+                setCurrentMonthYear();
+                openModal('create-payroll-modal');
+            });
+
+            // Auto-fill salary when employee selected
+            document.getElementById('payroll-employee').addEventListener('change', function() {
+                const opt = this.options[this.selectedIndex];
+                const salary = opt.getAttribute('data-salary') || 0;
+                document.getElementById('payroll-basic').value = salary;
+                calculateNet();
+            });
+
+            // Auto-calculate net salary
+            ['payroll-basic', 'payroll-bonus', 'payroll-deductions'].forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateNet);
+            });
+
+            // Create form submit
+            document.getElementById('create-payroll-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const data = {
+                    employeeId: parseInt(document.getElementById('payroll-employee').value),
+                    month: parseInt(document.getElementById('payroll-month').value),
+                    year: parseInt(document.getElementById('payroll-year').value),
+                    basicSalary: parseFloat(document.getElementById('payroll-basic').value),
+                    bonus: parseFloat(document.getElementById('payroll-bonus').value) || 0,
+                    deductions: parseFloat(document.getElementById('payroll-deductions').value) || 0
+                };
+
+                try {
+                    await PayrollAPI.create(data);
+                    showNotification('Success', 'Payroll created successfully!', 'success');
+                    closeModal('create-payroll-modal');
+                    await loadPayrolls(data.month, data.year);
+                } catch (e) {
+                    showNotification('Error', 'Failed to create payroll: ' + e.message, 'danger');
+                }
+            });
+
+            // Generate payroll
+            document.getElementById('btn-generate-payroll').addEventListener('click', function() {
+                if (isEmployee()) return;
+                document.getElementById('generate-payroll-form').reset();
+                setCurrentMonthYear();
+                openModal('generate-payroll-modal');
+            });
+
+            document.getElementById('generate-payroll-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const data = {
+                    month: parseInt(document.getElementById('generate-month').value),
+                    year: parseInt(document.getElementById('generate-year').value)
+                };
+
+                try {
+                    const result = await PayrollAPI.generate(data);
+                    showNotification('Success', result.message || 'Payroll generated successfully!', 'success');
+                    closeModal('generate-payroll-modal');
+                    await loadPayrolls(data.month, data.year);
+                } catch (e) {
+                    showNotification('Error', 'Failed to generate payroll: ' + e.message, 'danger');
+                }
+            });
+
+            // Approve bonus form
+            document.getElementById('approve-bonus-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const payrollId = document.getElementById('approve-payroll-id').value;
+                const remarks = document.getElementById('approve-remarks').value;
+
+                try {
+                    await PayrollAPI.approve(payrollId, remarks);
+                    showNotification('Success', 'Payroll approved successfully!', 'success');
+                    closeModal('approve-bonus-modal');
+                    await loadPayrolls();
+                } catch (e) {
+                    showNotification('Error', 'Failed to approve payroll: ' + e.message, 'danger');
+                }
+            });
+
+            // Reject bonus
+            document.getElementById('btn-reject-bonus').addEventListener('click', async function() {
+                const payrollId = document.getElementById('approve-payroll-id').value;
+                const remarks = document.getElementById('approve-remarks').value;
+
+                if (!confirm('Are you sure you want to reject this payroll?')) return;
+
+                try {
+                    await PayrollAPI.reject(payrollId, remarks);
+                    showNotification('Success', 'Payroll rejected.', 'success');
+                    closeModal('approve-bonus-modal');
+                    await loadPayrolls();
+                } catch (e) {
+                    showNotification('Error', 'Failed to reject payroll: ' + e.message, 'danger');
+                }
+            });
+
+            // Hide create/generate buttons for employees
+            if (isEmployee()) {
+                document.getElementById('btn-create-payroll').style.display = 'none';
+                document.getElementById('btn-generate-payroll').style.display = 'none';
+            }
+        }
+
+        function calculateNet() {
+            const basic = parseFloat(document.getElementById('payroll-basic').value) || 0;
+            const bonus = parseFloat(document.getElementById('payroll-bonus').value) || 0;
+            const deductions = parseFloat(document.getElementById('payroll-deductions').value) || 0;
+            document.getElementById('payroll-net').value = (basic + bonus - deductions).toFixed(2);
+        }
+
+        async function deletePayroll(id) {
+            if (!confirm('Are you sure you want to delete this payroll record?')) return;
+            try {
+                await apiRequest(`/api/Payrolls/${id}`, { method: 'DELETE' });
+                showNotification('Success', 'Payroll record deleted.', 'success');
+                await loadPayrolls();
+            } catch (e) {
+                showNotification('Error', 'Failed to delete payroll: ' + e.message, 'danger');
+            }
+        }
+
+        function printPayslip(id) {
+            const payroll = allPayrolls.find(p => p.id === id);
+            if (!payroll) return;
+
+            const printWindow = window.open('', '_blank');
+            const empName = payroll.employee?.fullName || 'Unknown';
+            const monthName = getMonthName(payroll.month);
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Payslip - ${empName}</title>
+                    <style>
+                        body { font-family: 'Inter', sans-serif; padding: 2rem; color: #1e293b; }
+                        .header { text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #2563eb; padding-bottom: 1rem; }
+                        .payslip-box { border: 1px solid #e2e8f0; padding: 2rem; border-radius: 12px; max-width: 600px; margin: 0 auto; }
+                        .row { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+                        .label { color: #64748b; font-weight: 500; }
+                        .value { font-weight: 700; }
+                        .total { font-size: 1.5rem; color: #10b981; border-top: 2px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem; }
+                        .footer { text-align: center; margin-top: 2rem; font-size: 0.8rem; color: #94a3b8; }
+                    </style>
+                </head>
+                <body>
+                    <div class="payslip-box">
+                        <div class="header">
+                            <h2>HR MANAGEMENT SYSTEM</h2>
+                            <h3>PAYSLIP - ${monthName.toUpperCase()} ${payroll.year}</h3>
+                        </div>
+                        <div class="row"><span class="label">Employee Name:</span><span class="value">${empName}</span></div>
+                        <div class="row"><span class="label">Department:</span><span class="value">${payroll.employee?.department?.name || 'N/A'}</span></div>
+                        <div class="row"><span class="label">Designation:</span><span class="value">${payroll.employee?.position || 'N/A'}</span></div>
+                        <hr>
+                        <div class="row"><span class="label">Basic Salary:</span><span class="value">${formatCurrency(payroll.basicSalary)}</span></div>
+                        <div class="row"><span class="label">Bonus:</span><span class="value" style="color:#10b981;">+${formatCurrency(payroll.bonus || 0)}</span></div>
+                        <div class="row"><span class="label">Deductions:</span><span class="value" style="color:#ef4444;">-${formatCurrency(payroll.deductions || 0)}</span></div>
+                        <div class="row total"><span class="label">NET SALARY:</span><span class="value">${formatCurrency(payroll.netSalary)}</span></div>
+                        <div class="footer">
+                            <p>This is a computer-generated payslip and does not require a signature.</p>
+                            <p>&copy; 2026 HR Management System</p>
+                        </div>
+                    </div>
+                    <script>window.print();<\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    </script>
+}

@@ -1,27 +1,127 @@
-﻿// HR Management System - Frontend API Handling
+// HR Management System - Frontend API Handling
 // This file contains all frontend API interactions for the HR Management System
 
 const API_BASE_URL = window.location.origin; // Will be http://localhost:4000
 
-// Utility function for making API requests
+// Auth helper functions
+function getAuthToken() {
+    return localStorage.getItem('auth_token');
+}
+
+function getUserRole() {
+    return localStorage.getItem('user_role') || '';
+}
+
+function getUserEmail() {
+    return localStorage.getItem('user_email') || '';
+}
+
+function getUserId() {
+    return localStorage.getItem('user_id') || '';
+}
+
+function getUserEmployeeId() {
+    return localStorage.getItem('user_employeeId') || '';
+}
+
+function isAuthenticated() {
+    return !!getAuthToken();
+}
+
+function isAdmin() {
+    return getUserRole() === 'Admin';
+}
+
+function isHR() {
+    return getUserRole() === 'HR';
+}
+
+function isEmployee() {
+    return getUserRole() === 'Employee';
+}
+
+function isAdminOrHR() {
+    return isAdmin() || isHR();
+}
+
+// Clear auth data and redirect to login
+function logout() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_employeeId');
+    localStorage.removeItem('user_name');
+    window.location.href = '/Home/Logout';
+}
+
+// Check auth on page load - redirect to login if not authenticated
+function checkAuth() {
+    const currentPath = window.location.pathname.toLowerCase();
+    const publicPages = ['/home/login', '/home/register', '/home/index', '/home/privacy', '/home/hello'];
+    
+    // Allow public pages
+    if (publicPages.some(p => currentPath === p || currentPath === '/')) {
+        return true;
+    }
+    
+    // Check if authenticated
+    if (!isAuthenticated()) {
+        window.location.href = '/Home/Login';
+        return false;
+    }
+    
+    return true;
+}
+
+// Utility function for making API requests with JWT token
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        credentials: 'include' // Include cookies for authentication
+    const token = getAuthToken();
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
     };
     
+    // Add JWT token to Authorization header if available
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const defaultOptions = {
+        headers,
+        credentials: 'include'
+    };
+    
+    // Merge headers properly (don't overwrite Authorization header)
     const mergedOptions = { ...defaultOptions, ...options };
+    if (options.headers) {
+        mergedOptions.headers = { ...defaultOptions.headers, ...options.headers };
+    }
     
     try {
         const response = await fetch(url, mergedOptions);
         
+        // Handle 401 Unauthorized - redirect to login
+        if (response.status === 401) {
+            showNotification('Session Expired', 'Please login again.', 'danger');
+            setTimeout(() => logout(), 1500);
+            throw new Error('Unauthorized');
+        }
+        
+        // Handle 403 Forbidden
+        if (response.status === 403) {
+            const errorData = await response.json().catch(() => ({ message: 'Access denied' }));
+            showNotification('Access Denied', errorData.message || 'You do not have permission for this action.', 'danger');
+            throw new Error(`Forbidden: ${errorData.message || 'Access denied'}`);
+        }
+        
         if (!response.ok) {
             const errorText = await response.text();
+            if (!options.silent) {
+                showNotification('Error', `Request failed (${response.status}): ${errorText.substring(0, 100)}`, 'danger');
+            }
             throw new Error(`API Error ${response.status}: ${errorText}`);
         }
         
@@ -33,8 +133,12 @@ async function apiRequest(endpoint, options = {}) {
             return await response.text();
         }
     } catch (error) {
-        console.error('API Request failed:', error);
-        showNotification('Error', 'Failed to fetch data from server. Please try again.', 'danger');
+        // Only show generic network error notification if not already handled above
+        // and not a special auth error (401/403 already showed their own notification)
+        if (!options.silent && error.message !== 'Unauthorized' && !error.message.startsWith('Forbidden') && !error.message.startsWith('API Error')) {
+            console.error('API Request failed:', error);
+            showNotification('Error', 'Network error. Please check your connection and try again.', 'danger');
+        }
         throw error;
     }
 }
@@ -59,6 +163,10 @@ const DashboardAPI = {
     
     async getPayrollSummary(month = 0, year = 0) {
         return await apiRequest(`/api/Dashboard/payroll-summary?month=${month}&year=${year}`);
+    },
+    
+    async getUpcomingHolidays() {
+        return await apiRequest('/api/Dashboard/upcoming-holidays');
     }
 };
 
@@ -101,6 +209,30 @@ const EmployeesAPI = {
     
     async getById(id) {
         return await apiRequest(`/api/Employees/${id}`);
+    },
+    
+    async create(employeeData) {
+        return await apiRequest('/api/Employees', {
+            method: 'POST',
+            body: JSON.stringify(employeeData)
+        });
+    },
+    
+    async update(id, employeeData) {
+        return await apiRequest(`/api/Employees/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(employeeData)
+        });
+    },
+    
+    async delete(id) {
+        return await apiRequest(`/api/Employees/${id}`, {
+            method: 'DELETE'
+        });
+    },
+    
+    async getMyProfile() {
+        return await apiRequest('/api/Employees/my-profile');
     }
 };
 
@@ -108,6 +240,30 @@ const EmployeesAPI = {
 const DepartmentsAPI = {
     async getAll() {
         return await apiRequest('/api/Departments');
+    },
+    
+    async getById(id) {
+        return await apiRequest(`/api/Departments/${id}`);
+    },
+    
+    async create(departmentData) {
+        return await apiRequest('/api/Departments', {
+            method: 'POST',
+            body: JSON.stringify(departmentData)
+        });
+    },
+    
+    async update(id, departmentData) {
+        return await apiRequest(`/api/Departments/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(departmentData)
+        });
+    },
+    
+    async delete(id) {
+        return await apiRequest(`/api/Departments/${id}`, {
+            method: 'DELETE'
+        });
     }
 };
 
@@ -115,6 +271,33 @@ const DepartmentsAPI = {
 const LeavesAPI = {
     async getAll() {
         return await apiRequest('/api/Leaves');
+    },
+    
+    async getByEmployee(employeeId) {
+        return await apiRequest(`/api/Leaves/employee/${employeeId}`);
+    },
+    
+    async getMyLeaves() {
+        return await apiRequest('/api/Leaves/my-leaves');
+    },
+    
+    async create(leaveData) {
+        return await apiRequest('/api/Leaves', {
+            method: 'POST',
+            body: JSON.stringify(leaveData)
+        });
+    },
+    
+    async approve(id) {
+        return await apiRequest(`/api/Leaves/${id}/approve`, {
+            method: 'PUT'
+        });
+    },
+    
+    async reject(id) {
+        return await apiRequest(`/api/Leaves/${id}/reject`, {
+            method: 'PUT'
+        });
     }
 };
 
@@ -122,6 +305,23 @@ const LeavesAPI = {
 const AttendanceAPI = {
     async getAll() {
         return await apiRequest('/api/Attendances');
+    },
+    
+    async getByEmployee(employeeId) {
+        return await apiRequest(`/api/Attendances/employee/${employeeId}`);
+    },
+    
+    async checkIn(data) {
+        return await apiRequest('/api/Attendances/check-in', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+    
+    async checkOut(id) {
+        return await apiRequest(`/api/Attendances/check-out/${id}`, {
+            method: 'POST'
+        });
     }
 };
 
@@ -129,6 +329,154 @@ const AttendanceAPI = {
 const PayrollAPI = {
     async getAll() {
         return await apiRequest('/api/Payrolls');
+    },
+    
+    async getByEmployee(employeeId) {
+        return await apiRequest(`/api/Payrolls/employee/${employeeId}`);
+    },
+    
+    async create(payrollData) {
+        return await apiRequest('/api/Payrolls', {
+            method: 'POST',
+            body: JSON.stringify(payrollData)
+        });
+    },
+    
+    async update(id, payrollData) {
+        return await apiRequest(`/api/Payrolls/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(payrollData)
+        });
+    },
+    
+    async approve(id, remarks = '') {
+        return await apiRequest(`/api/Payrolls/${id}/approve`, {
+            method: 'PUT',
+            body: JSON.stringify({ remarks })
+        });
+    },
+    
+    async reject(id, remarks = '') {
+        return await apiRequest(`/api/Payrolls/${id}/reject`, {
+            method: 'PUT',
+            body: JSON.stringify({ remarks })
+        });
+    },
+    
+    async generate(data) {
+        return await apiRequest('/api/Payrolls/generate', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+};
+
+// Holidays API functions
+const HolidaysAPI = {
+    async getAll() {
+        return await apiRequest('/api/Holidays');
+    },
+    
+    async create(holidayData) {
+        return await apiRequest('/api/Holidays', {
+            method: 'POST',
+            body: JSON.stringify(holidayData)
+        });
+    },
+    
+    async update(id, holidayData) {
+        return await apiRequest(`/api/Holidays/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(holidayData)
+        });
+    },
+    
+    async delete(id) {
+        return await apiRequest(`/api/Holidays/${id}`, {
+            method: 'DELETE'
+        });
+    },
+    
+    async bulkCreate(holidays) {
+        return await apiRequest('/api/Holidays/bulk', {
+            method: 'POST',
+            body: JSON.stringify(holidays)
+        });
+    }
+};
+
+// Notifications API functions
+const NotificationsAPI = {
+    async getAll() {
+        return await apiRequest('/api/Notifications');
+    },
+    
+    async getUnreadCount() {
+        return await apiRequest('/api/Notifications/unread-count');
+    },
+    
+    async markRead(id) {
+        return await apiRequest(`/api/Notifications/${id}/read`, {
+            method: 'PUT'
+        });
+    },
+    
+    async markAllRead() {
+        return await apiRequest('/api/Notifications/mark-all-read', {
+            method: 'PUT'
+        });
+    },
+    
+    async delete(id) {
+        return await apiRequest(`/api/Notifications/${id}`, {
+            method: 'DELETE'
+        });
+    },
+    
+    async create(notificationData) {
+        return await apiRequest('/api/Notifications', {
+            method: 'POST',
+            body: JSON.stringify(notificationData)
+        });
+    }
+};
+
+// Roles API functions
+const RolesAPI = {
+    async getAll() {
+        return await apiRequest('/api/Roles');
+    },
+    
+    async getSystemRoles() {
+        return await apiRequest('/api/Roles/system-roles');
+    },
+    
+    async getWithUserCount() {
+        return await apiRequest('/api/Roles/with-user-count');
+    },
+    
+    async getMetadata() {
+        return await apiRequest('/api/Roles/metadata');
+    },
+    
+    async create(roleData) {
+        return await apiRequest('/api/Roles', {
+            method: 'POST',
+            body: JSON.stringify(roleData)
+        });
+    },
+    
+    async update(id, roleData) {
+        return await apiRequest(`/api/Roles/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(roleData)
+        });
+    },
+    
+    async delete(id) {
+        return await apiRequest(`/api/Roles/${id}`, {
+            method: 'DELETE'
+        });
     }
 };
 
@@ -143,23 +491,64 @@ const LogsAPI = {
     }
 };
 
+// Supervisor API functions
+const SupervisorAPI = {
+    async getHierarchy() {
+        return await apiRequest('/api/Supervisor/hierarchy');
+    },
+    
+    async getMyChain() {
+        return await apiRequest('/api/Supervisor/my-chain', { silent: true });
+    },
+    
+    async getSubordinates(supervisorId) {
+        return await apiRequest(`/api/Supervisor/${supervisorId}/subordinates`);
+    },
+    
+    async getSupervisors() {
+        return await apiRequest('/api/Supervisor/supervisors');
+    }
+};
+
 // Authentication functions
 const AuthAPI = {
     async login(email, password) {
-        return await apiRequest('/api/Login', {
+        return await apiRequest('/api/Login/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
         });
     },
     
-    async logout() {
-        return await apiRequest('/api/Logout', {
-            method: 'POST'
+    async register(userData) {
+        return await apiRequest('/api/Login/register', {
+            method: 'POST',
+            body: JSON.stringify(userData)
         });
+    },
+    
+    async logout() {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('user_employeeId');
+        localStorage.removeItem('user_name');
+        window.location.href = '/Home/Logout';
     },
     
     async getCurrentUser() {
         return await apiRequest('/api/Users/current');
+    },
+    
+    async changePassword(currentPassword, newPassword) {
+        return await apiRequest('/api/Login/change-password', {
+            method: 'POST',
+            body: JSON.stringify({ oldPassword: currentPassword, newPassword: newPassword })
+        });
+    },
+    
+    async getProfile() {
+        return await apiRequest('/api/Login/profile');
     }
 };
 
@@ -211,11 +600,12 @@ function createNotificationContainer() {
 function showLoading(elementId) {
     const element = document.getElementById(elementId);
     if (element) {
-        element.innerHTML = '<div class="loading-spinner"><div></div><div></div><div></div><div></div></div>';
+        element.innerHTML = '<div class="loading-spinner" style="text-align:center;padding:2rem;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
     }
 }
 
 function formatDate(dateString) {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -225,183 +615,107 @@ function formatDate(dateString) {
 }
 
 function formatCurrency(amount) {
+    if (amount === null || amount === undefined) return '$0';
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     }).format(amount);
 }
 
-// Dashboard initialization
-async function initializeDashboard() {
-    const dashboardElement = document.getElementById('dashboard-stats');
-    if (!dashboardElement) return;
-    
-    try {
-        // Show loading state
-        showLoading('dashboard-stats');
-        
-        // Fetch dashboard stats
-        const stats = await DashboardAPI.getStats();
-        
-        // Update the dashboard with real data
-        updateDashboardStats(stats);
-        
-        // Load chart data if charts exist
-        loadCharts();
-        
-    } catch (error) {
-        console.error('Failed to initialize dashboard:', error);
-        showNotification('Dashboard Error', 'Could not load dashboard data. Using sample data.', 'warning');
-        // You could fall back to the hardcoded values here
+function formatTime(timeString) {
+    if (!timeString) return 'N/A';
+    return timeString;
+}
+
+function getInitials(name) {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
+function getStatusBadgeClass(status) {
+    switch ((status || '').toLowerCase()) {
+        case 'approved':
+        case 'present':
+        case 'paid':
+            return 'badge-success';
+        case 'pending':
+        case 'late':
+            return 'badge-warning';
+        case 'rejected':
+        case 'absent':
+            return 'badge-danger';
+        default:
+            return 'badge-info';
     }
 }
 
-function updateDashboardStats(stats) {
-    // Update Total Employees
-    const totalEmployeesEl = document.getElementById('total-employees');
-    if (totalEmployeesEl && stats.totalEmployees !== undefined) {
-        totalEmployeesEl.textContent = stats.totalEmployees;
-    }
+// Update sidebar visibility based on role
+function updateSidebarVisibility() {
+    const role = getUserRole();
+    if (!role) return;
     
-    // Update Present Today
-    const presentTodayEl = document.getElementById('present-today');
-    if (presentTodayEl && stats.presentToday !== undefined) {
-        presentTodayEl.textContent = stats.presentToday;
-        
-        // Update attendance percentage
-        const attendancePercent = stats.totalEmployees > 0
-            ? Math.round((stats.presentToday / stats.totalEmployees) * 100)
-            : 0;
-        const attendanceText = document.getElementById('attendance-percent');
-        if (attendanceText) {
-            attendanceText.innerHTML = `<i class="fas fa-arrow-up"></i> ${attendancePercent}% attendance`;
-        }
-    }
-    
-    // Update Pending Leaves
-    const pendingLeavesEl = document.getElementById('pending-leaves');
-    if (pendingLeavesEl && stats.pendingLeaves !== undefined) {
-        pendingLeavesEl.textContent = stats.pendingLeaves;
-    }
-    
-    // Update Monthly Payroll
-    const monthlyPayrollEl = document.getElementById('monthly-payroll');
-    if (monthlyPayrollEl && stats.totalPayroll !== undefined) {
-        monthlyPayrollEl.textContent = formatCurrency(stats.totalPayroll);
-    }
-    
-    // Update Total Departments
-    const totalDepartmentsEl = document.getElementById('total-departments');
-    if (totalDepartmentsEl && stats.totalDepartments !== undefined) {
-        totalDepartmentsEl.textContent = stats.totalDepartments;
-    }
-    
-    // Calculate and update Average Salary
-    const avgSalaryEl = document.getElementById('avg-salary');
-    if (avgSalaryEl && stats.totalPayroll !== undefined && stats.totalEmployees !== undefined && stats.totalEmployees > 0) {
-        const avgSalary = Math.round(stats.totalPayroll / stats.totalEmployees);
-        avgSalaryEl.textContent = formatCurrency(avgSalary);
-    }
-}
-
-function loadCharts() {
-    // This is a placeholder for chart loading logic
-    // You would integrate with a charting library like Chart.js here
-    console.log('Charts would be loaded here');
-}
-
-// Data table initialization for listing pages
-function initializeDataTable(tableId, apiFunction, columns) {
-    const tableElement = document.getElementById(tableId);
-    if (!tableElement) return;
-    
-    // Show loading
-    const tbody = tableElement.querySelector('tbody');
-    if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="' + columns.length + '" class="text-center">Loading data...</td></tr>';
-    }
-    
-    // Fetch data
-    apiFunction().then(data => {
-        if (tbody && Array.isArray(data)) {
-            tbody.innerHTML = '';
-            data.forEach(item => {
-                const row = document.createElement('tr');
-                columns.forEach(col => {
-                    const cell = document.createElement('td');
-                    let value = item[col.field];
-                    
-                    // Apply formatters if specified
-                    if (col.formatter) {
-                        value = col.formatter(value, item);
-                    }
-                    
-                    cell.innerHTML = value;
-                    row.appendChild(cell);
-                });
-                tbody.appendChild(row);
-            });
-        }
-    }).catch(error => {
-        console.error('Failed to load table data:', error);
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="' + columns.length + '" class="text-center text-danger">Failed to load data</td></tr>';
+    // Hide all role-restricted items first
+    document.querySelectorAll('[data-role]').forEach(el => {
+        const allowedRoles = el.getAttribute('data-role').split(',');
+        if (allowedRoles.includes(role)) {
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
         }
     });
+    
+    // Update user info in topbar
+    const userName = localStorage.getItem('user_name') || getUserEmail();
+    const userAvatarEl = document.getElementById('user-avatar-initial');
+    if (userAvatarEl) {
+        userAvatarEl.textContent = userName.charAt(0).toUpperCase();
+    }
+    
+    const userNameEl = document.getElementById('user-display-name');
+    if (userNameEl) {
+        userNameEl.textContent = userName;
+    }
+    
+    const userRoleEl = document.getElementById('user-display-role');
+    if (userRoleEl) {
+        userRoleEl.textContent = role;
+    }
+}
+
+// Update notification count in topbar
+async function updateNotificationCount() {
+    try {
+        const data = await NotificationsAPI.getUnreadCount();
+        const countEl = document.getElementById('notification-count');
+        if (countEl) {
+            const count = data.count || data || 0;
+            countEl.textContent = count;
+            countEl.style.display = count > 0 ? 'inline' : 'none';
+        }
+    } catch (e) {
+        // Silently fail
+    }
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('HR Management System frontend initialized');
     
-    // Initialize dashboard if on dashboard page
-    if (document.getElementById('dashboard-stats')) {
-        initializeDashboard();
-    }
+    // Check authentication
+    checkAuth();
     
-    // Initialize users table if on users page
-    if (document.getElementById('users-table')) {
-        initializeDataTable('users-table', UsersAPI.getAll, [
-            { field: 'id', label: 'ID' },
-            { field: 'email', label: 'Email' },
-            { field: 'role', label: 'Role' }
-        ]);
-    }
+    // Update sidebar visibility
+    updateSidebarVisibility();
     
-    // Initialize employees table if on employees page
-    if (document.getElementById('employees-table')) {
-        initializeDataTable('employees-table', EmployeesAPI.getAll, [
-            { field: 'id', label: 'ID' },
-            { field: 'name', label: 'Name' },
-            { field: 'department', label: 'Department' },
-            { field: 'position', label: 'Position' }
-        ]);
+    // Update notification count
+    if (isAuthenticated()) {
+        updateNotificationCount();
     }
     
     // Add notification container
     createNotificationContainer();
-    
-    // Handle login form if present
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                const result = await AuthAPI.login(email, password);
-                if (result.success) {
-                    window.location.href = '/Home/Dashboard';
-                } else {
-                    showNotification('Login Failed', result.message || 'Invalid credentials', 'danger');
-                }
-            } catch (error) {
-                showNotification('Login Error', 'Failed to connect to server', 'danger');
-            }
-        });
-    }
 });
 
 // Export APIs for use in browser console
@@ -414,12 +728,33 @@ window.HRManagement = {
         Leaves: LeavesAPI,
         Attendance: AttendanceAPI,
         Payroll: PayrollAPI,
+        Holidays: HolidaysAPI,
+        Notifications: NotificationsAPI,
+        Roles: RolesAPI,
         Logs: LogsAPI,
+        Supervisor: SupervisorAPI,
         Auth: AuthAPI
     },
     Utils: {
         showNotification,
         formatDate,
-        formatCurrency
+        formatCurrency,
+        formatTime,
+        getInitials,
+        getStatusBadgeClass,
+        showLoading
+    },
+    Auth: {
+        getAuthToken,
+        getUserRole,
+        getUserEmail,
+        getUserId,
+        isAuthenticated,
+        isAdmin,
+        isHR,
+        isEmployee,
+        isAdminOrHR,
+        logout,
+        checkAuth
     }
 };

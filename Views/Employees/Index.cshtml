@@ -1,5 +1,3 @@
-@model IEnumerable<Management.Models.Employee>
-
 @{
     ViewData["Title"] = "Employees Management";
 }
@@ -11,126 +9,23 @@
         margin-bottom: 2rem;
         flex-wrap: wrap;
     }
-
     .filter-group {
         display: flex;
         gap: 0.5rem;
         flex: 1;
         min-width: 200px;
     }
-
-    .filter-group input,
-    .filter-group select {
-        flex: 1;
+    .filter-group input, .filter-group select { flex: 1; }
+    .table-actions { display: flex; gap: 0.5rem; }
+    .table-actions a, .table-actions button { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5); z-index: 2000;
+        display: flex; align-items: center; justify-content: center;
     }
-
-    .table-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .table-actions a,
-    .table-actions button {
-        padding: 0.35rem 0.75rem;
-        font-size: 0.85rem;
-    }
-
-    .employee-card {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-    }
-
-    .employee-item {
-        background: var(--white);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1.5rem;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .employee-item:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-color: var(--primary-color);
-    }
-
-    .employee-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .employee-avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 1.5rem;
-    }
-
-    .employee-info h5 {
-        margin: 0;
-        font-size: 1.1rem;
-    }
-
-    .employee-info p {
-        margin: 0;
-        font-size: 0.9rem;
-        color: var(--text-light);
-    }
-
-    .employee-details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin: 1rem 0;
-        padding: 1rem 0;
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .detail-item label {
-        display: block;
-        font-size: 0.8rem;
-        color: var(--text-light);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
-    }
-
-    .detail-item p {
-        margin: 0;
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-
-    .view-toggle {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .view-toggle button {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--border-color);
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .view-toggle button.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
+    .modal-content-custom {
+        background: white; border-radius: 12px; padding: 2rem;
+        max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto;
     }
 </style>
 
@@ -140,41 +35,20 @@
             <h1 class="page-title">Employees Management</h1>
             <p class="page-subtitle">Manage all employees in your organization</p>
         </div>
-        <a href="#" class="btn btn-primary">
+        <button class="btn btn-primary" onclick="openAddModal()">
             <i class="fas fa-plus"></i> Add New Employee
-        </a>
+        </button>
     </div>
 </div>
 
 <!-- Search & Filters -->
 <div class="search-filters">
     <div class="filter-group">
-        <input type="text" class="form-control" placeholder="Search by name...">
-        <select class="form-control">
-            <option selected>All Departments</option>
-            <option>IT</option>
-            <option>HR</option>
-            <option>Finance</option>
-            <option>Operations</option>
-            <option>Sales</option>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search by name or email..." oninput="filterEmployees()">
+        <select class="form-control" id="deptFilter" onchange="filterEmployees()">
+            <option value="">All Departments</option>
         </select>
     </div>
-    <button class="btn btn-outline-primary">
-        <i class="fas fa-filter"></i> More Filters
-    </button>
-    <button class="btn btn-outline-primary">
-        <i class="fas fa-download"></i> Export
-    </button>
-</div>
-
-<!-- View Toggle -->
-<div class="view-toggle">
-    <button class="active" data-view="table">
-        <i class="fas fa-table"></i> Table View
-    </button>
-    <button data-view="card">
-        <i class="fas fa-th"></i> Card View
-    </button>
 </div>
 
 <!-- Table View -->
@@ -184,183 +58,338 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th style="width: 25%;">Name</th>
-                        <th style="width: 20%;">Department</th>
+                        <th style="width: 25%;">Full Name</th>
+                        <th style="width: 15%;">Department</th>
                         <th style="width: 15%;">Position</th>
-                        <th style="width: 15%;">Salary</th>
-                        <th style="width: 15%;">Contact</th>
-                        <th style="width: 10%;">Actions</th>
+                        <th style="width: 12%;">Salary</th>
+                        <th style="width: 15%;">Supervisor</th>
+                        <th style="width: 12%;">Contact</th>
+                        <th style="width: 6%;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">JD</div>
-                                <div>
-                                    <p style="margin: 0; font-weight: 600;">John Doe</p>
-                                    <small style="color: var(--text-light);">ID: EMP001</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge badge-info">IT</span>
-                        </td>
-                        <td>Senior Developer</td>
-                        <td>
-                            <strong>$85,000</strong>
-                        </td>
-                        <td>
-                            <small>john@company.com</small><br>
-                            <small>+1 (555) 123-4567</small>
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059e0a 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">SM</div>
-                                <div>
-                                    <p style="margin: 0; font-weight: 600;">Sarah Miller</p>
-                                    <small style="color: var(--text-light);">ID: EMP002</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge badge-success">HR</span>
-                        </td>
-                        <td>HR Manager</td>
-                        <td>
-                            <strong>$65,000</strong>
-                        </td>
-                        <td>
-                            <small>sarah@company.com</small><br>
-                            <small>+1 (555) 234-5678</small>
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">MB</div>
-                                <div>
-                                    <p style="margin: 0; font-weight: 600;">Mike Brown</p>
-                                    <small style="color: var(--text-light);">ID: EMP003</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge badge-warning">Finance</span>
-                        </td>
-                        <td>Financial Analyst</td>
-                        <td>
-                            <strong>$55,000</strong>
-                        </td>
-                        <td>
-                            <small>mike@company.com</small><br>
-                            <small>+1 (555) 345-6789</small>
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">EJ</div>
-                                <div>
-                                    <p style="margin: 0; font-weight: 600;">Emma Johnson</p>
-                                    <small style="color: var(--text-light);">ID: EMP004</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge badge-success">Operations</span>
-                        </td>
-                        <td>Operations Coordinator</td>
-                        <td>
-                            <strong>$48,000</strong>
-                        </td>
-                        <td>
-                            <small>emma@company.com</small><br>
-                            <small>+1 (555) 456-7890</small>
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="#" class="btn btn-sm btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                <tbody id="employees-tbody">
+                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Pagination -->
-<nav aria-label="Page navigation" style="margin-top: 1.5rem;">
-    <ul class="pagination justify-content-center">
-        <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1">Previous</a>
-        </li>
-        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
-        </li>
-    </ul>
-</nav>
+<!-- Add/Edit Employee Modal -->
+<div id="employeeModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content-custom">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h4 id="modalTitle" style="margin:0;">Add New Employee</h4>
+            <button class="btn btn-sm btn-light" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="employeeForm">
+            <input type="hidden" id="empId">
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" id="empFullName" required placeholder="Enter full name">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="empEmail" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-control" id="empPhone">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Age</label>
+                    <input type="number" class="form-control" id="empAge" min="18" max="100">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Department *</label>
+                    <select class="form-control" id="empDepartment" required></select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Position *</label>
+                    <input type="text" class="form-control" id="empPosition" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Salary *</label>
+                    <input type="number" class="form-control" id="empSalary" required min="0">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Hire Date *</label>
+                    <input type="date" class="form-control" id="empHireDate" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Supervisor</label>
+                    <select class="form-control" id="empSupervisor">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">User Account (Email)</label>
+                    <select class="form-control" id="empUser">
+                        <option value="">None</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                <textarea class="form-control" id="empAddress" rows="2"></textarea>
+            </div>
+            <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i> Save Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Employee Detail Modal -->
+<div id="viewModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content-custom">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h4 style="margin:0;">Employee Details</h4>
+            <button class="btn btn-sm btn-light" onclick="document.getElementById('viewModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="viewContent"></div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.view-toggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
+        let allEmployees = [];
+        let allDepartments = [];
+
+        async function loadEmployees() {
+            try {
+                const data = await EmployeesAPI.getAll();
+                allEmployees = Array.isArray(data) ? data : [];
+                renderEmployees(allEmployees);
+            } catch (e) {
+                document.getElementById('employees-tbody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load employees</td></tr>';
+            }
+        }
+
+        async function loadDepartments() {
+            try {
+                const data = await DepartmentsAPI.getAll();
+                allDepartments = Array.isArray(data) ? data : [];
+                const deptFilter = document.getElementById('deptFilter');
+                const empDept = document.getElementById('empDepartment');
+                deptFilter.innerHTML = '<option value="">All Departments</option>' + 
+                    allDepartments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                empDept.innerHTML = '<option value="">Select Department</option>' + 
+                    allDepartments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            } catch (e) {
+                console.error('Failed to load departments:', e);
+            }
+        }
+
+        async function loadSupervisors() {
+            try {
+                const data = await EmployeesAPI.getAll();
+                const empSupervisor = document.getElementById('empSupervisor');
+                empSupervisor.innerHTML = '<option value="">None</option>' + 
+                    data.map(e => `<option value="${e.id}">${e.fullName}</option>`).join('');
+            } catch (e) {
+                console.error('Failed to load supervisors:', e);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const data = await UsersAPI.getAll();
+                const empUser = document.getElementById('empUser');
+                empUser.innerHTML = '<option value="">None</option>' + 
+                    data.map(u => `<option value="${u.id}">${u.email}</option>`).join('');
+            } catch (e) {
+                console.error('Failed to load users:', e);
+            }
+        }
+
+        function renderEmployees(employees) {
+            const tbody = document.getElementById('employees-tbody');
+            if (!employees || employees.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No employees found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = employees.map(emp => {
+                const name = emp.fullName || 'N/A';
+                const initials = getInitials(name);
+                const dept = emp.department ? emp.department.name : 'N/A';
+                const supervisor = emp.supervisor ? emp.supervisor.fullName : 'None';
+                const salary = emp.salary ? formatCurrency(emp.salary) : 'N/A';
+                const email = emp.user ? emp.user.email : (emp.email || 'N/A');
+                const phone = emp.phone || 'N/A';
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size:0.8rem;">${initials}</div>
+                                <div>
+                                    <p style="margin: 0; font-weight: 600;">${name}</p>
+                                    <small style="color: var(--text-light);">ID: ${emp.id}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-info">${dept}</span></td>
+                        <td>${emp.position || 'N/A'}</td>
+                        <td><strong>${salary}</strong></td>
+                        <td>${supervisor !== 'None' ? `<small>${supervisor}</small>` : '<small class="text-muted">None</small>'}</td>
+                        <td><small>${email}</small>${phone !== 'N/A' ? `<br><small>${phone}</small>` : ''}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn btn-sm btn-outline-primary" title="View" onclick="viewEmployee(${emp.id})"><i class="fas fa-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="editEmployee(${emp.id})"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteEmployee(${emp.id})"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterEmployees() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const deptId = document.getElementById('deptFilter').value;
+            let filtered = allEmployees;
+            if (search) {
+                filtered = filtered.filter(e => {
+                    const name = (e.fullName || '').toLowerCase();
+                    const email = (e.user?.email || e.email || '').toLowerCase();
+                    return name.includes(search) || email.includes(search);
+                });
+            }
+            if (deptId) {
+                filtered = filtered.filter(e => e.departmentId == deptId);
+            }
+            renderEmployees(filtered);
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Employee';
+            document.getElementById('empId').value = '';
+            document.getElementById('employeeForm').reset();
+            document.getElementById('empAge').value = '';
+            document.getElementById('empHireDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('employeeModal').style.display = 'flex';
+            loadSupervisors();
+            loadUsers();
+        }
+
+        async function editEmployee(id) {
+            try {
+                const emp = await EmployeesAPI.getById(id);
+                document.getElementById('modalTitle').textContent = 'Edit Employee';
+                document.getElementById('empId').value = emp.id;
+                document.getElementById('empFullName').value = emp.fullName || '';
+                document.getElementById('empEmail').value = emp.user?.email || emp.email || '';
+                document.getElementById('empPhone').value = emp.phone || '';
+                document.getElementById('empAge').value = emp.age !== undefined && emp.age !== null ? emp.age : '';
+                document.getElementById('empDepartment').value = emp.departmentId || '';
+                document.getElementById('empPosition').value = emp.position || '';
+                document.getElementById('empSalary').value = emp.salary || '';
+                document.getElementById('empHireDate').value = emp.hireDate ? emp.hireDate.split('T')[0] : '';
+                document.getElementById('empSupervisor').value = emp.supervisorId || '';
+                document.getElementById('empUser').value = emp.userId || '';
+                document.getElementById('empAddress').value = emp.address || '';
+                document.getElementById('employeeModal').style.display = 'flex';
+                await loadSupervisors();
+                await loadUsers();
+                document.getElementById('empSupervisor').value = emp.supervisorId || '';
+                document.getElementById('empUser').value = emp.userId || '';
+            } catch (e) {
+                showNotification('Error', 'Failed to load employee details', 'danger');
+            }
+        }
+
+        async function viewEmployee(id) {
+            try {
+                const emp = await EmployeesAPI.getById(id);
+                const name = emp.fullName || 'N/A';
+                const supervisor = emp.supervisor ? emp.supervisor.fullName : 'None';
+                const dept = emp.department ? emp.department.name : 'N/A';
+                document.getElementById('viewContent').innerHTML = `
+                    <div style="text-align:center;margin-bottom:1.5rem;">
+                        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#0ea5e9);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:2rem;margin:0 auto 1rem;">${getInitials(name)}</div>
+                        <h4>${name}</h4>
+                        <p class="text-muted">${emp.position || 'N/A'}</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Employee ID</label><p><strong>${emp.id}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Department</label><p><strong>${dept}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Email</label><p><strong>${emp.user?.email || emp.email || 'N/A'}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Phone</label><p><strong>${emp.phone || 'N/A'}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Age</label><p><strong>${emp.age || 'N/A'}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Salary</label><p><strong>${emp.salary ? formatCurrency(emp.salary) : 'N/A'}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Hire Date</label><p><strong>${emp.hireDate ? formatDate(emp.hireDate) : 'N/A'}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Supervisor</label><p><strong>${supervisor}</strong></p></div>
+                        <div class="col-md-6 mb-3"><label class="form-label text-muted">Address</label><p><strong>${emp.address || 'N/A'}</strong></p></div>
+                    </div>
+                `;
+                document.getElementById('viewModal').style.display = 'flex';
+            } catch (e) {
+                showNotification('Error', 'Failed to load employee details', 'danger');
+            }
+        }
+
+        async function deleteEmployee(id) {
+            if (!confirm('Are you sure you want to delete this employee?')) return;
+            try {
+                await EmployeesAPI.delete(id);
+                showNotification('Success', 'Employee deleted successfully', 'success');
+                loadEmployees();
+            } catch (e) {
+                showNotification('Error', 'Failed to delete employee', 'danger');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('employeeModal').style.display = 'none';
+        }
+
+        document.getElementById('employeeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('empId').value;
+            const data = {
+                fullName: document.getElementById('empFullName').value,
+                email: document.getElementById('empEmail').value,
+                phone: document.getElementById('empPhone').value,
+                age: document.getElementById('empAge').value ? parseInt(document.getElementById('empAge').value) : 0,
+                departmentId: parseInt(document.getElementById('empDepartment').value),
+                position: document.getElementById('empPosition').value,
+                salary: parseFloat(document.getElementById('empSalary').value),
+                hireDate: document.getElementById('empHireDate').value,
+                supervisorId: document.getElementById('empSupervisor').value ? parseInt(document.getElementById('empSupervisor').value) : null,
+                userId: document.getElementById('empUser').value ? parseInt(document.getElementById('empUser').value) : null,
+                address: document.getElementById('empAddress').value
+            };
+            try {
+                if (id) {
+                    await EmployeesAPI.update(id, data);
+                    showNotification('Success', 'Employee updated successfully', 'success');
+                } else {
+                    await EmployeesAPI.create(data);
+                    showNotification('Success', 'Employee created successfully', 'success');
+                }
+                closeModal();
+                loadEmployees();
+            } catch (e) {
+                showNotification('Error', 'Failed to save employee: ' + e.message, 'danger');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEmployees();
+            loadDepartments();
         });
     </script>
 }
